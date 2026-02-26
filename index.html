@@ -82,10 +82,8 @@ const homeBtn = document.getElementById("homeBtn");
 
 const birdImg = new Image();
 birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
-const coinImg = new Image();
-coinImg.src = "https://i.imgur.com/6s9x4t6.png"; // simple coin png
 
-let bird, gravity, pipes, coins, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty;
+let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty;
 highScore = localStorage.getItem("fluppyHighScore") || 0;
 difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
 const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
@@ -94,7 +92,6 @@ function initGame(){
     bird = {x:100, y:200, width:60, height:60, velocity:0, rotation:0};
     gravity = 0.35;
     pipes = [];
-    coins = [];
     score = 0;
     gameOver = false;
     paused = false;
@@ -107,21 +104,51 @@ function createPipe(){
     const topHeight = Math.random()*(canvas.height-gap-100)+50;
     const pipeX = canvas.width;
     pipes.push({x:pipeX, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
-    // Coin in middle of gap
-    coins.push({x:pipeX+30, y:topHeight+gap/2-15, width:30, height:30, collected:false});
 }
 
+// --- Updated startGame with countdown ---
 let pipeInterval;
 function startGame(){
     titleScreen.style.display="none";
     settingsScreen.style.display="none";
-    pauseBtn.style.display="block";
+    pauseBtn.style.display="none";
     restartBtn.style.display="none";
     homeBtn.style.display="none";
-    gameStarted = true;
+
+    gameStarted = false; // countdown ke liye temporarily false
     initGame();
-    pipeInterval = setInterval(createPipe,2000);
-    update();
+
+    let countdown = ["3", "2", "1", "Go!"];
+    let countIndex = 0;
+
+    const overlay = document.createElement("div");
+    overlay.style.position = "absolute";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.fontSize = "120px";
+    overlay.style.color = "white";
+    overlay.style.textShadow = "4px 4px 0 black";
+    overlay.style.background = "rgba(0,0,0,0.3)";
+    overlay.style.zIndex = "1000";
+    document.body.appendChild(overlay);
+
+    const interval = setInterval(() => {
+        overlay.textContent = countdown[countIndex];
+        countIndex++;
+        if(countIndex >= countdown.length){
+            clearInterval(interval);
+            document.body.removeChild(overlay);
+            pauseBtn.style.display = "block";
+            gameStarted = true;
+            pipeInterval = setInterval(createPipe, 2000);
+            update();
+        }
+    }, 1000);
 }
 
 function endGame(){
@@ -153,8 +180,8 @@ function update(){
     ctx.drawImage(birdImg,-bird.width/2,-bird.height/2,bird.width,bird.height);
     ctx.restore();
 
-    // Draw pipes and coins
-    pipes.forEach((pipe,i)=>{
+    // Draw pipes
+    pipes.forEach((pipe)=>{
         pipe.x -= pipeSpeed;
         ctx.fillStyle="green";
         ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
@@ -165,14 +192,6 @@ function update(){
         }
 
         if(!pipe.passed && pipe.x+pipe.width<bird.x){ score++; pipe.passed=true;}
-    });
-
-    coins.forEach((coin,i)=>{
-        coin.x -= pipeSpeed;
-        if(!coin.collected && bird.x<coin.x+coin.width && bird.x+bird.width>coin.x && bird.y<coin.y+coin.height && bird.y+bird.height>coin.y){
-            coin.collected=true; score++; // coin score bonus
-        }
-        if(!coin.collected){ ctx.drawImage(coinImg,coin.x,coin.y,coin.width,coin.height); }
     });
 
     if(bird.y+bird.height>canvas.height || bird.y<0) endGame();
@@ -211,4 +230,4 @@ homeBtn.addEventListener("click",()=>{
 });
 </script>
 </body>
-    </html>
+</html>
