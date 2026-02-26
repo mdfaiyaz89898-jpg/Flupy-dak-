@@ -92,7 +92,6 @@ canvas{ display:block; }
 
 <div id="settingsPanel">
     <label><input type="radio" name="difficulty" value="Very Easy" checked> Very Easy</label>
-    <label><input type="radio" name="difficulty" value="Easy"> Easy</label>
     <label><input type="radio" name="difficulty" value="Normal"> Normal</label>
     <label><input type="radio" name="difficulty" value="Hard"> Hard</label>
 </div>
@@ -126,7 +125,6 @@ highScore = localStorage.getItem("fluppyHighScore") || 0;
 // Difficulty Settings (pipe speed)
 const difficultySettings = {
     "Very Easy": 2,
-    "Easy": 3,
     "Normal": 4,
     "Hard": 6
 };
@@ -140,10 +138,10 @@ function initGame(){
     gameOver = false;
     paused = false;
 
-    // Default difficulty = Very Easy
+    // Default difficulty
     difficulty = "Very Easy";
     pipeSpeed = difficultySettings[difficulty];
-    document.querySelector('input[name="difficulty"][value="Very Easy"]').checked = true;
+    document.querySelector('input[name="difficulty"][value="'+difficulty+'"]').checked = true;
 }
 
 // Create Pipes
@@ -178,7 +176,6 @@ function endGame(){
         localStorage.setItem("fluppyHighScore", highScore);
     }
 
-    // Shake effect
     canvas.style.transform = "translateX(5px)";
     setTimeout(()=> canvas.style.transform="translateX(0px)",100);
 }
@@ -191,9 +188,9 @@ function getMedal(score){
     return "No Medal 😅";
 }
 
-// Update Theme (Day/Night)
+// Update Theme
 function updateTheme(){
-    if(score >= 10){ canvas.style.background = "#1a1a2e"; } else { canvas.style.background = "#70c5ce"; }
+    canvas.style.background = score >= 10 ? "#1a1a2e" : "#70c5ce";
 }
 
 // Update Game Loop
@@ -230,7 +227,6 @@ function update(){
         }
     });
 
-    // Bird out of bounds
     if(bird.y + bird.height > canvas.height || bird.y < 0){ endGame(); }
 
     // Draw Scores
@@ -239,14 +235,11 @@ function update(){
     ctx.fillText("Score: "+score,20,40);
     ctx.fillText("High Score: "+highScore,20,70);
 
-    // Medal on Game Over
     if(gameOver){
         ctx.fillText("Medal: " + getMedal(score), canvas.width/2 - 60, canvas.height/2 + 40);
     }
 
-    // Day/Night Theme
     updateTheme();
-
     requestAnimationFrame(update);
 }
 
@@ -263,17 +256,17 @@ document.addEventListener("touchstart", function(e){ e.preventDefault(); jump();
 startBtn.addEventListener("click",startGame);
 restartBtn.addEventListener("click",startGame);
 
-// Settings button toggle
+// Settings Button
 settingsBtn.addEventListener("click", ()=>{
     paused = !paused;
     settingsPanel.style.display = settingsPanel.style.display === "block" ? "none" : "block";
 });
 
-// Difficulty change
+// Difficulty Change
 document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
     radio.addEventListener("change",()=>{
         difficulty = radio.value;
-        pipeSpeed = difficultySettings[difficulty]; // immediately update pipe speed
+        pipeSpeed = difficultySettings[difficulty];
     });
 });
 </script>
