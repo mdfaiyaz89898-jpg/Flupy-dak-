@@ -119,7 +119,9 @@ const birdImg = new Image();
 birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
 
 // Game Variables
-let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, difficulty;
+let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, difficulty, pipeSpeed;
+
+highScore = localStorage.getItem("fluppyHighScore") || 0;
 
 // Difficulty Settings (pipe speed)
 const difficultySettings = {
@@ -128,8 +130,6 @@ const difficultySettings = {
     "Normal": 4,
     "Hard": 6
 };
-
-highScore = localStorage.getItem("fluppyHighScore") || 0;
 
 // Initialize Game
 function initGame(){
@@ -142,6 +142,7 @@ function initGame(){
 
     // Default difficulty = Very Easy
     difficulty = "Very Easy";
+    pipeSpeed = difficultySettings[difficulty];
     document.querySelector('input[name="difficulty"][value="Very Easy"]').checked = true;
 }
 
@@ -177,7 +178,7 @@ function endGame(){
         localStorage.setItem("fluppyHighScore", highScore);
     }
 
-    // Shake effect on game over
+    // Shake effect
     canvas.style.transform = "translateX(5px)";
     setTimeout(()=> canvas.style.transform="translateX(0px)",100);
 }
@@ -209,7 +210,7 @@ function update(){
 
     // Draw Pipes
     pipes.forEach(pipe=>{
-        pipe.x -= difficultySettings[difficulty]; // speed based on difficulty
+        pipe.x -= pipeSpeed;
 
         ctx.fillStyle="green";
         ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
@@ -272,6 +273,7 @@ settingsBtn.addEventListener("click", ()=>{
 document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
     radio.addEventListener("change",()=>{
         difficulty = radio.value;
+        pipeSpeed = difficultySettings[difficulty]; // immediately update pipe speed
     });
 });
 </script>
