@@ -7,8 +7,7 @@
 body{
 margin:0;
 overflow:hidden;
-background:skyblue;
-text-align:center;
+background:linear-gradient(skyblue,white);
 }
 canvas{
 display:block;
@@ -23,6 +22,8 @@ padding:15px 30px;
 font-size:18px;
 border:none;
 border-radius:10px;
+background:black;
+color:white;
 display:none;
 }
 </style>
@@ -32,51 +33,62 @@ display:none;
 <canvas id="game"></canvas>
 <button id="restartBtn">Restart 🔄</button>
 
+<audio id="jumpSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+<audio id="hitSound" src="https://actions.google.com/sounds/v1/cartoon/concussive_hit_guitar_boing.ogg"></audio>
+
 <script>
 let canvas = document.getElementById("game");
 let ctx = canvas.getContext("2d");
 let restartBtn = document.getElementById("restartBtn");
+let jumpSound = document.getElementById("jumpSound");
+let hitSound = document.getElementById("hitSound");
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let bird, pipes, score, gameOver;
+let birdImg = new Image();
+birdImg.src = "https://i.imgur.com/QZ7Z8vH.png"; // bird image
+
+let bird, pipes, score, highScore, gameOver;
 
 function init(){
 bird = {
-x:100,
-y:150,
-size:20,
-gravity:0.6,
-lift:-10,
+x:120,
+y:200,
+size:40,
+gravity:0.5,
+lift:-9,
 velocity:0
 };
 pipes = [];
 score = 0;
+highScore = localStorage.getItem("highScore") || 0;
 gameOver = false;
 restartBtn.style.display="none";
 }
 
 function drawBird(){
-ctx.fillStyle="yellow";
-ctx.beginPath();
-ctx.arc(bird.x,bird.y,bird.size,0,Math.PI*2);
-ctx.fill();
+ctx.drawImage(birdImg,bird.x-20,bird.y-20,40,40);
 }
 
 function drawPipes(){
 ctx.fillStyle="green";
 pipes.forEach(pipe=>{
-ctx.fillRect(pipe.x,0,50,pipe.top);
-ctx.fillRect(pipe.x,pipe.bottom,50,canvas.height);
+ctx.fillRect(pipe.x,0,60,pipe.top);
+ctx.fillRect(pipe.x,pipe.bottom,60,canvas.height);
 
 if(
-bird.x + bird.size > pipe.x &&
-bird.x - bird.size < pipe.x + 50 &&
-(bird.y - bird.size < pipe.top ||
- bird.y + bird.size > pipe.bottom)
+bird.x + 20 > pipe.x &&
+bird.x - 20 < pipe.x + 60 &&
+(bird.y - 20 < pipe.top ||
+ bird.y + 20 > pipe.bottom)
 ){
 endGame();
+}
+
+if(!pipe.passed && pipe.x + 60 < bird.x){
+pipe.passed = true;
+score++;
 }
 });
 }
@@ -85,38 +97,41 @@ function update(){
 bird.velocity += bird.gravity;
 bird.y += bird.velocity;
 
-if(bird.y + bird.size > canvas.height){
+if(bird.y > canvas.height || bird.y < 0){
 endGame();
 }
 
 pipes.forEach(pipe=>{
 pipe.x -= 3;
-if(pipe.x === bird.x){
-score++;
-}
 });
 }
 
 function createPipe(){
 if(gameOver) return;
-let gap = 150;
+let gap = 170;
 let top = Math.random()*(canvas.height/2);
 pipes.push({
 x:canvas.width,
 top:top,
-bottom:top+gap
+bottom:top+gap,
+passed:false
 });
 }
 
-setInterval(createPipe,2000);
+setInterval(createPipe,1800);
 
 function drawScore(){
 ctx.fillStyle="black";
-ctx.font="30px Arial";
+ctx.font="25px Arial";
 ctx.fillText("Score: "+score,20,40);
+ctx.fillText("High: "+highScore,20,70);
 }
 
 function endGame(){
+if(score > highScore){
+localStorage.setItem("highScore",score);
+}
+hitSound.play();
 gameOver = true;
 restartBtn.style.display="block";
 }
@@ -132,11 +147,15 @@ requestAnimationFrame(loop);
 drawScore();
 }
 
-window.addEventListener("click",()=>{
+function jump(){
 if(!gameOver){
 bird.velocity = bird.lift;
+jumpSound.play();
 }
-});
+}
+
+window.addEventListener("click",jump);
+window.addEventListener("touchstart",jump);
 
 restartBtn.addEventListener("click",()=>{
 init();
