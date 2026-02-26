@@ -15,23 +15,23 @@ body{
 /* Cartoon Style Title */
 #title{
     position:absolute;
-    top:20%;
+    top:15%;
     width:100%;
     text-align:center;
     font-size:60px;
     font-weight:bold;
     color:yellow;
-    text-shadow: 4px 4px 0px black, 8px 8px 0px orange;
-    font-family: 'Comic Sans MS', cursive;
-    animation: bounce 1s infinite alternate;
+    text-shadow:4px 4px 0px black, 8px 8px 0px orange;
+    font-family:'Comic Sans MS', cursive;
+    animation:bounce 1s infinite alternate;
 }
 @keyframes bounce{
     from{ transform: translateY(0px); }
     to{ transform: translateY(-10px); }
 }
 
-/* Start / Restart Button */
-#startBtn, #restartBtn{
+/* Buttons */
+#startBtn, #restartBtn, #pauseBtn, #settingsBtn{
     position:absolute;
     left:50%;
     transform:translateX(-50%);
@@ -42,42 +42,32 @@ body{
     background:orange;
     color:white;
 }
-#startBtn{ top:45%; }
-#restartBtn{ top:45%; display:none; }
+#startBtn{ top:50%; }
+#restartBtn{ top:50%; display:none; }
+#pauseBtn{ top:10px; right:10px; transform:none; display:none; position:absolute; }
+#settingsBtn{ top:60%; left:50%; transform:translateX(-50%); }
 
 /* Made by text */
 #madeBy{
     position:absolute;
-    bottom:15px;
-    left:15px;
+    bottom:10px;
+    left:10px;
     font-size:14px;
-}
-
-/* Settings Button */
-#settingsBtn{
-    position:absolute;
-    top:10px;
-    right:10px;
-    padding:6px 10px;
-    font-size:14px;
-    border:none;
-    border-radius:5px;
-    background:#ff6600;
-    color:white;
 }
 
 /* Settings Panel */
 #settingsPanel{
     position:absolute;
-    top:40px;
-    right:10px;
-    padding:10px;
+    top:65%;
+    left:50%;
+    transform:translateX(-50%);
     background:white;
+    padding:10px;
     border-radius:8px;
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
     display:none;
 }
 #settingsPanel label{ display:block; margin:5px 0; }
+
 canvas{ display:block; }
 </style>
 </head>
@@ -87,8 +77,8 @@ canvas{ display:block; }
 <div id="title">Fluppy Bird</div>
 <button id="startBtn">Play</button>
 <button id="restartBtn">Restart</button>
+<button id="pauseBtn">Pause</button>
 <button id="settingsBtn">Settings</button>
-<div id="madeBy">Made by TrollHunter</div>
 
 <div id="settingsPanel">
     <label><input type="radio" name="difficulty" value="Very Easy" checked> Very Easy</label>
@@ -96,68 +86,65 @@ canvas{ display:block; }
     <label><input type="radio" name="difficulty" value="Hard"> Hard</label>
 </div>
 
+<div id="madeBy">Made by TrollHunter</div>
+
 <canvas id="gameCanvas"></canvas>
 
 <script>
-// Canvas & Context
+// Canvas setup
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// HTML Elements
+// Elements
 const title = document.getElementById("title");
 const startBtn = document.getElementById("startBtn");
 const restartBtn = document.getElementById("restartBtn");
+const pauseBtn = document.getElementById("pauseBtn");
 const settingsBtn = document.getElementById("settingsBtn");
 const settingsPanel = document.getElementById("settingsPanel");
 
-// Bird Image
+// Bird image
 const birdImg = new Image();
 birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
 
-// Game Variables
-let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, difficulty, pipeSpeed;
-
+// Game variables
+let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty;
 highScore = localStorage.getItem("fluppyHighScore") || 0;
 
-// Difficulty Settings (pipe speed)
-const difficultySettings = {
-    "Very Easy": 2,
-    "Normal": 4,
-    "Hard": 6
-};
+// Difficulty speeds
+const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
 
-// Initialize Game
+// Init game
 function initGame(){
-    bird = { x:100, y:200, width:60, height:60, velocity:0 };
+    bird = {x:100, y:200, width:60, height:60, velocity:0};
     gravity = 0.5;
     pipes = [];
     score = 0;
     gameOver = false;
     paused = false;
-
-    // Default difficulty
     difficulty = "Very Easy";
-    pipeSpeed = difficultySettings[difficulty];
-    document.querySelector('input[name="difficulty"][value="'+difficulty+'"]').checked = true;
+    pipeSpeed = difficultySpeeds[difficulty];
+    document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
 }
 
-// Create Pipes
+// Create pipes
 function createPipe(){
-    let gap = 170;
-    let topHeight = Math.random() * (canvas.height - gap - 200) + 50;
-    pipes.push({ x: canvas.width, width: 60, top: topHeight, bottom: canvas.height - topHeight - gap, passed:false });
+    const gap = 170;
+    const topHeight = Math.random() * (canvas.height - gap - 200) + 50;
+    pipes.push({x:canvas.width, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
 }
 
 let pipeInterval;
 
-// Start Game
+// Start game
 function startGame(){
     title.style.display="none";
     startBtn.style.display="none";
+    settingsBtn.style.display="none";
     restartBtn.style.display="none";
+    pauseBtn.style.display="block";
 
     gameStarted = true;
     initGame();
@@ -165,19 +152,17 @@ function startGame(){
     update();
 }
 
-// End Game
+// End game
 function endGame(){
     gameOver = true;
     clearInterval(pipeInterval);
     restartBtn.style.display="block";
+    pauseBtn.style.display="none";
 
     if(score > highScore){
         highScore = score;
         localStorage.setItem("fluppyHighScore", highScore);
     }
-
-    canvas.style.transform = "translateX(5px)";
-    setTimeout(()=> canvas.style.transform="translateX(0px)",100);
 }
 
 // Medal system
@@ -188,12 +173,13 @@ function getMedal(score){
     return "No Medal 😅";
 }
 
-// Update Theme
+// Day/Night theme
 function updateTheme(){
-    canvas.style.background = score >= 10 ? "#1a1a2e" : "#70c5ce";
+    if(score>=10) canvas.style.background="#1a1a2e";
+    else if(score>=5) canvas.style.background="#70c5ce";
 }
 
-// Update Game Loop
+// Update loop
 function update(){
     if(!gameStarted || gameOver || paused) return;
 
@@ -202,74 +188,72 @@ function update(){
 
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // Draw Bird
-    ctx.drawImage(birdImg,bird.x,bird.y,bird.width,bird.height);
+    // Bounce animation
+    ctx.save();
+    const bounce = Math.sin(Date.now()/150)*5;
+    ctx.drawImage(birdImg, bird.x, bird.y + bounce, bird.width, bird.height);
+    ctx.restore();
 
-    // Draw Pipes
+    // Pipes
     pipes.forEach(pipe=>{
         pipe.x -= pipeSpeed;
-
         ctx.fillStyle="green";
         ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
         ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
 
-        // Collision
-        if(bird.x < pipe.x + pipe.width &&
-           bird.x + bird.width > pipe.x &&
-           (bird.y < pipe.top || bird.y + bird.height > canvas.height - pipe.bottom)){
+        if(bird.x < pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top || bird.y+bird.height>canvas.height-pipe.bottom)){
             endGame();
         }
 
-        // Score
-        if(!pipe.passed && pipe.x + pipe.width < bird.x){
+        if(!pipe.passed && pipe.x+pipe.width<bird.x){
             score++;
-            pipe.passed = true;
+            pipe.passed=true;
         }
     });
 
-    if(bird.y + bird.height > canvas.height || bird.y < 0){ endGame(); }
+    if(bird.y+bird.height>canvas.height || bird.y<0) endGame();
 
-    // Draw Scores
+    // Scores
     ctx.fillStyle="black";
     ctx.font="25px Arial";
     ctx.fillText("Score: "+score,20,40);
     ctx.fillText("High Score: "+highScore,20,70);
 
     if(gameOver){
-        ctx.fillText("Medal: " + getMedal(score), canvas.width/2 - 60, canvas.height/2 + 40);
+        ctx.fillText("Medal: "+getMedal(score), canvas.width/2-60, canvas.height/2+40);
     }
 
     updateTheme();
     requestAnimationFrame(update);
 }
 
-// Jump Function
+// Jump
 function jump(){
-    if(gameStarted && !gameOver){ bird.velocity = -10; }
+    if(gameStarted && !gameOver) bird.velocity = -10;
 }
-
-// Mouse / Touch Events
 document.addEventListener("click", jump);
-document.addEventListener("touchstart", function(e){ e.preventDefault(); jump(); });
+document.addEventListener("touchstart", e=>{e.preventDefault(); jump();});
 
 // Buttons
 startBtn.addEventListener("click",startGame);
 restartBtn.addEventListener("click",startGame);
 
-// Settings Button
-settingsBtn.addEventListener("click", ()=>{
-    paused = !paused;
-    settingsPanel.style.display = settingsPanel.style.display === "block" ? "none" : "block";
+// Pause button
+pauseBtn.addEventListener("click",()=>{
+    paused=!paused;
+    if(!paused) update();
 });
 
-// Difficulty Change
+// Settings button
+settingsBtn.addEventListener("click",()=>{ settingsPanel.style.display = settingsPanel.style.display==='block'?'none':'block'; });
+
+// Difficulty select
 document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
     radio.addEventListener("change",()=>{
         difficulty = radio.value;
-        pipeSpeed = difficultySettings[difficulty];
+        pipeSpeed = difficultySpeeds[difficulty];
     });
 });
 </script>
-
 </body>
 </html>
