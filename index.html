@@ -13,7 +13,7 @@ canvas{ display:block; }
 #titleScreen h1{ font-size:60px; color:yellow; text-shadow:4px 4px 0px black,8px 8px 0px orange; font-family:'Comic Sans MS', cursive; animation:bounce 1s infinite alternate; margin-bottom:30px; }
 @keyframes bounce{ 0%{transform:translateY(0px);}100%{transform:translateY(-10px);} }
 #titleScreen button, #settingsScreen button{ padding:12px 30px; font-size:20px; border:none; border-radius:8px; margin:8px; background:orange; color:white; cursor:pointer; }
-#settingsScreen{ background:#f0f0f0; display:none; flex-direction:column; justify-content:flex-start; padding-top:60px; }
+#settingsScreen{ background:#f0f0f0; display:none; flex-direction:column; justify-content:flex-start; padding-top:60px; width:100%; height:100%; }
 #settingsScreen h2{ margin-bottom:20px; }
 #settingsScreen .backBtn{ position:absolute; top:10px; left:10px; font-size:25px; background:transparent; color:orange; border:none; cursor:pointer; }
 
@@ -81,17 +81,13 @@ birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
 // Game variables
 let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty;
 highScore = localStorage.getItem("fluppyHighScore") || 0;
-
-// Difficulty speeds
-const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
-
-// Selected difficulty save
 difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
+const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
 
 // Initialize game
 function initGame(){
     bird = {x:100, y:200, width:60, height:60, velocity:0};
-    gravity = 0.4; // Easier gravity
+    gravity = 0.4; // easier gravity
     pipes = [];
     score = 0;
     gameOver = false;
@@ -102,8 +98,8 @@ function initGame(){
 
 // Create pipes
 function createPipe(){
-    const gap = 220; // bigger gap to avoid early out
-    const topHeight = Math.random() * (canvas.height - gap - 100) + 50;
+    const gap = 220;
+    const topHeight = Math.random()*(canvas.height-gap-100)+50;
     pipes.push({x:canvas.width, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
 }
 
@@ -176,7 +172,7 @@ function update(){
 }
 
 // Jump
-function jump(){ if(gameStarted && !gameOver) bird.velocity=-10; }
+function jump(){ if(gameStarted && !gameOver) bird.velocity=-6; } // less jump
 document.addEventListener("click", jump);
 document.addEventListener("touchstart", e=>{ e.preventDefault(); jump(); });
 
@@ -190,7 +186,7 @@ document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
     radio.addEventListener("change",()=>{
         difficulty = radio.value;
         pipeSpeed = difficultySpeeds[difficulty];
-        localStorage.setItem("fluppyDifficulty",difficulty); // save selection
+        localStorage.setItem("fluppyDifficulty",difficulty);
     });
 });
 
@@ -199,6 +195,8 @@ pauseBtn.addEventListener("click",()=>{ paused=!paused; if(!paused) update(); })
 
 // Restart button
 restartBtn.addEventListener("click",()=>{ startGame(); });
+
+// Home button
 homeBtn.addEventListener("click",()=>{
     titleScreen.style.display="flex";
     restartBtn.style.display="none";
