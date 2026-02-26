@@ -10,28 +10,33 @@ canvas{ display:block; }
 /* Starting Screen */
 #titleScreen, #settingsScreen{ position:absolute; width:100%; height:100%; top:0; left:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
 #titleScreen{ background:skyblue; }
-#titleScreen h1{ font-size:60px; color:yellow; text-shadow:4px 4px 0px black,8px 8px 0px orange; font-family:'Comic Sans MS', cursive; animation:bounce 1s infinite alternate; margin-bottom:30px;}
+#titleScreen h1{ font-size:60px; color:yellow; text-shadow:4px 4px 0 black,8px 8px 0 orange; font-family:'Comic Sans MS', cursive; animation:bounce 1s infinite alternate; margin-bottom:30px;}
 @keyframes bounce{0%{transform:translateY(0px);}100%{transform:translateY(-10px);}}
-#titleScreen button, #settingsScreen button{ padding:12px 30px; font-size:20px; border:none; border-radius:8px; margin:8px; background:orange; color:white; cursor:pointer; }
+#titleScreen button, #settingsScreen button{ padding:12px 30px; font-size:20px; border:none; border-radius:12px; margin:8px; cursor:pointer; transition:0.2s; }
+#titleScreen button:hover, #settingsScreen button:hover{ transform:scale(1.1);}
+#playBtn{ background:linear-gradient(45deg,#ffeb3b,#fbc02d); color:#000; font-weight:bold; box-shadow:3px 3px 0 #ffa000;}
+#settingsBtnMain{ background:linear-gradient(45deg,#ff9800,#f57c00); color:white; font-weight:bold; box-shadow:3px 3px 0 #e65100;}
 #settingsScreen{ background:#f0f0f0; display:none; flex-direction:column; justify-content:flex-start; padding-top:60px; width:100%; height:100%; }
 #settingsScreen h2{ margin-bottom:20px; }
 #settingsScreen .backBtn{ position:absolute; top:10px; left:10px; font-size:25px; background:transparent; color:orange; border:none; cursor:pointer; }
 
 /* Difficulty Radio Buttons */
-#difficultyOptions label{ display:block; margin:10px; font-size:20px; cursor:pointer; color:white; }
+#difficultyOptions label{ display:block; margin:10px; font-size:20px; cursor:pointer; color:white; padding:6px; border-radius:6px;}
 #difficultyOptions input[type="radio"]{ margin-right:10px; accent-color:orange; }
-#difficultyOptions label.veryEasy{ background:#4caf50; padding:5px; border-radius:5px; }
-#difficultyOptions label.normal{ background:#ff9800; padding:5px; border-radius:5px; }
-#difficultyOptions label.hard{ background:#f44336; padding:5px; border-radius:5px; }
+#difficultyOptions label.veryEasy{ background:#4caf50; }
+#difficultyOptions label.normal{ background:#ff9800; }
+#difficultyOptions label.hard{ background:#f44336; }
 
 /* In-Game UI */
-#pauseBtn, #restartBtn, #homeBtn{ position:absolute; top:10px; padding:8px 12px; border:none; border-radius:5px; background:orange; color:white; cursor:pointer; font-size:16px;}
-#pauseBtn{ right:10px; display:none; }
-#restartBtn{ display:none; top:50%; left:50%; transform:translate(-50%,-50%); }
-#homeBtn{ display:none; top:50%; left:50%; transform:translate(-50%,70%); }
+#pauseBtn, #restartBtn, #homeBtn{ position:absolute; top:10px; padding:8px 12px; border:none; border-radius:8px; font-size:16px; cursor:pointer; font-weight:bold; }
+#pauseBtn{ right:10px; display:none; background:#ccc; color:#333; }
+#pauseBtn::after{ content:"⏸"; font-size:18px; }
+#restartBtn{ display:none; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(45deg,#ff5722,#e64a19); color:white; box-shadow:3px 3px 0 #b71c1c;}
+#homeBtn{ display:none; top:50%; left:50%; transform:translate(-50%,70%); background:linear-gradient(45deg,#03a9f4,#0288d1); color:white; box-shadow:3px 3px 0 #01579b;}
 
 /* Made by */
 #madeBy{ position:absolute; bottom:10px; left:10px; font-size:14px; }
+
 </style>
 </head>
 <body>
@@ -55,19 +60,17 @@ canvas{ display:block; }
 </div>
 
 <canvas id="gameCanvas"></canvas>
-<button id="pauseBtn">Pause</button>
+<button id="pauseBtn"></button>
 <button id="restartBtn">Restart</button>
 <button id="homeBtn">Home</button>
 <div id="madeBy">Made by TrollHunter</div>
 
 <script>
-// Canvas setup
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Elements
 const titleScreen = document.getElementById("titleScreen");
 const settingsScreen = document.getElementById("settingsScreen");
 const playBtn = document.getElementById("playBtn");
@@ -77,21 +80,21 @@ const pauseBtn = document.getElementById("pauseBtn");
 const restartBtn = document.getElementById("restartBtn");
 const homeBtn = document.getElementById("homeBtn");
 
-// Bird image
 const birdImg = new Image();
 birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
+const coinImg = new Image();
+coinImg.src = "https://i.imgur.com/6s9x4t6.png"; // simple coin png
 
-// Game variables
-let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty;
+let bird, gravity, pipes, coins, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty;
 highScore = localStorage.getItem("fluppyHighScore") || 0;
 difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
 const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
 
-// Initialize game
 function initGame(){
     bird = {x:100, y:200, width:60, height:60, velocity:0, rotation:0};
-    gravity = 0.35; // less gravity
+    gravity = 0.35;
     pipes = [];
+    coins = [];
     score = 0;
     gameOver = false;
     paused = false;
@@ -99,30 +102,28 @@ function initGame(){
     document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
 }
 
-// Create pipes
 function createPipe(){
     const gap = 220;
     const topHeight = Math.random()*(canvas.height-gap-100)+50;
-    pipes.push({x:canvas.width, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
+    const pipeX = canvas.width;
+    pipes.push({x:pipeX, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
+    // Coin in middle of gap
+    coins.push({x:pipeX+30, y:topHeight+gap/2-15, width:30, height:30, collected:false});
 }
 
 let pipeInterval;
-
-// Start game
 function startGame(){
     titleScreen.style.display="none";
     settingsScreen.style.display="none";
     pauseBtn.style.display="block";
     restartBtn.style.display="none";
     homeBtn.style.display="none";
-
     gameStarted = true;
     initGame();
     pipeInterval = setInterval(createPipe,2000);
     update();
 }
 
-// End game
 function endGame(){
     gameOver = true;
     clearInterval(pipeInterval);
@@ -132,30 +133,28 @@ function endGame(){
     if(score>highScore){ highScore=score; localStorage.setItem("fluppyHighScore",highScore);}
 }
 
-// Update loop
 function update(){
     if(!gameStarted || gameOver || paused) return;
 
     bird.velocity += gravity;
     bird.y += bird.velocity;
-    bird.rotation = Math.min(bird.velocity*5,25); // rotation based on velocity
+    bird.rotation = Math.min(bird.velocity*5,25);
 
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // Day/Night background
-    if(score>=10){ canvas.style.background="#1a1a2e"; } 
-    else if(score>=5){ canvas.style.background="#70c5ce"; }
-    else { canvas.style.background="skyblue"; }
+    // Day/Night cycle every 5 scores
+    const cycle = Math.floor(score/5)%2;
+    if(cycle===0){ canvas.style.background="skyblue"; } else { canvas.style.background="#1a1a2e"; }
 
-    // Bird draw with rotation + bounce
+    // Draw bird
     ctx.save();
     ctx.translate(bird.x+bird.width/2,bird.y+bird.height/2);
     ctx.rotate(bird.rotation*Math.PI/180);
     ctx.drawImage(birdImg,-bird.width/2,-bird.height/2,bird.width,bird.height);
     ctx.restore();
 
-    // Pipes
-    pipes.forEach(pipe=>{
+    // Draw pipes and coins
+    pipes.forEach((pipe,i)=>{
         pipe.x -= pipeSpeed;
         ctx.fillStyle="green";
         ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
@@ -168,6 +167,14 @@ function update(){
         if(!pipe.passed && pipe.x+pipe.width<bird.x){ score++; pipe.passed=true;}
     });
 
+    coins.forEach((coin,i)=>{
+        coin.x -= pipeSpeed;
+        if(!coin.collected && bird.x<coin.x+coin.width && bird.x+bird.width>coin.x && bird.y<coin.y+coin.height && bird.y+bird.height>coin.y){
+            coin.collected=true; score++; // coin score bonus
+        }
+        if(!coin.collected){ ctx.drawImage(coinImg,coin.x,coin.y,coin.width,coin.height); }
+    });
+
     if(bird.y+bird.height>canvas.height || bird.y<0) endGame();
 
     // Score display
@@ -178,17 +185,14 @@ function update(){
     requestAnimationFrame(update);
 }
 
-// Jump
-function jump(){ if(gameStarted && !gameOver) bird.velocity=-6; } // smaller jump
+function jump(){ if(gameStarted && !gameOver) bird.velocity=-6; }
 document.addEventListener("click", jump);
 document.addEventListener("touchstart", e=>{ e.preventDefault(); jump(); });
 
-// Buttons
 playBtn.addEventListener("click",()=>{ startGame(); });
 settingsBtnMain.addEventListener("click",()=>{ titleScreen.style.display="none"; settingsScreen.style.display="flex"; });
 backBtn.addEventListener("click",()=>{ settingsScreen.style.display="none"; titleScreen.style.display="flex"; });
 
-// Difficulty select
 document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
     radio.addEventListener("change",()=>{
         difficulty = radio.value;
@@ -197,13 +201,8 @@ document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
     });
 });
 
-// Pause button
 pauseBtn.addEventListener("click",()=>{ paused=!paused; if(!paused) update(); });
-
-// Restart button
 restartBtn.addEventListener("click",()=>{ startGame(); });
-
-// Home button
 homeBtn.addEventListener("click",()=>{
     titleScreen.style.display="flex";
     restartBtn.style.display="none";
