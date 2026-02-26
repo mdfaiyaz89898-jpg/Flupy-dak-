@@ -21,13 +21,10 @@ body{
     font-size:60px;
     font-weight:bold;
     color:yellow;
-    text-shadow:
-        4px 4px 0px black,
-        8px 8px 0px orange;
+    text-shadow: 4px 4px 0px black, 8px 8px 0px orange;
     font-family: 'Comic Sans MS', cursive;
     animation: bounce 1s infinite alternate;
 }
-
 @keyframes bounce{
     from{ transform: translateY(0px); }
     to{ transform: translateY(-10px); }
@@ -45,15 +42,8 @@ body{
     background:orange;
     color:white;
 }
-
-#startBtn{
-    top:45%;
-}
-
-#restartBtn{
-    top:45%;
-    display:none;
-}
+#startBtn{ top:45%; }
+#restartBtn{ top:45%; display:none; }
 
 /* Made by text */
 #madeBy{
@@ -63,9 +53,32 @@ body{
     font-size:14px;
 }
 
-canvas{
-    display:block;
+/* Settings Button */
+#settingsBtn{
+    position:absolute;
+    top:10px;
+    right:10px;
+    padding:6px 10px;
+    font-size:14px;
+    border:none;
+    border-radius:5px;
+    background:#ff6600;
+    color:white;
 }
+
+/* Settings Panel */
+#settingsPanel{
+    position:absolute;
+    top:40px;
+    right:10px;
+    padding:10px;
+    background:white;
+    border-radius:8px;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+    display:none;
+}
+#settingsPanel label{ display:block; margin:5px 0; }
+canvas{ display:block; }
 </style>
 </head>
 
@@ -74,12 +87,194 @@ canvas{
 <div id="title">Fluppy Bird</div>
 <button id="startBtn">Play</button>
 <button id="restartBtn">Restart</button>
+<button id="settingsBtn">Settings</button>
 <div id="madeBy">Made by TrollHunter</div>
+
+<div id="settingsPanel">
+    <label><input type="radio" name="difficulty" value="Very Easy" checked> Very Easy</label>
+    <label><input type="radio" name="difficulty" value="Easy"> Easy</label>
+    <label><input type="radio" name="difficulty" value="Normal"> Normal</label>
+    <label><input type="radio" name="difficulty" value="Hard"> Hard</label>
+</div>
 
 <canvas id="gameCanvas"></canvas>
 
-<!-- New JS linked here -->
-<script src="gameV2.js"></script>
+<script>
+// Canvas & Context
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// HTML Elements
+const title = document.getElementById("title");
+const startBtn = document.getElementById("startBtn");
+const restartBtn = document.getElementById("restartBtn");
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsPanel = document.getElementById("settingsPanel");
+
+// Bird Image
+const birdImg = new Image();
+birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
+
+// Game Variables
+let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, difficulty;
+
+// Difficulty Settings (pipe speed)
+const difficultySettings = {
+    "Very Easy": 2,
+    "Easy": 3,
+    "Normal": 4,
+    "Hard": 6
+};
+
+highScore = localStorage.getItem("fluppyHighScore") || 0;
+
+// Initialize Game
+function initGame(){
+    bird = { x:100, y:200, width:60, height:60, velocity:0 };
+    gravity = 0.5;
+    pipes = [];
+    score = 0;
+    gameOver = false;
+    paused = false;
+
+    // Default difficulty = Very Easy
+    difficulty = "Very Easy";
+    document.querySelector('input[name="difficulty"][value="Very Easy"]').checked = true;
+}
+
+// Create Pipes
+function createPipe(){
+    let gap = 170;
+    let topHeight = Math.random() * (canvas.height - gap - 200) + 50;
+    pipes.push({ x: canvas.width, width: 60, top: topHeight, bottom: canvas.height - topHeight - gap, passed:false });
+}
+
+let pipeInterval;
+
+// Start Game
+function startGame(){
+    title.style.display="none";
+    startBtn.style.display="none";
+    restartBtn.style.display="none";
+
+    gameStarted = true;
+    initGame();
+    pipeInterval = setInterval(createPipe,2000);
+    update();
+}
+
+// End Game
+function endGame(){
+    gameOver = true;
+    clearInterval(pipeInterval);
+    restartBtn.style.display="block";
+
+    if(score > highScore){
+        highScore = score;
+        localStorage.setItem("fluppyHighScore", highScore);
+    }
+
+    // Shake effect on game over
+    canvas.style.transform = "translateX(5px)";
+    setTimeout(()=> canvas.style.transform="translateX(0px)",100);
+}
+
+// Medal system
+function getMedal(score){
+    if(score >= 26) return "Gold 🥇";
+    if(score >= 16) return "Silver 🥈";
+    if(score >= 6) return "Bronze 🥉";
+    return "No Medal 😅";
+}
+
+// Update Theme (Day/Night)
+function updateTheme(){
+    if(score >= 10){ canvas.style.background = "#1a1a2e"; } else { canvas.style.background = "#70c5ce"; }
+}
+
+// Update Game Loop
+function update(){
+    if(!gameStarted || gameOver || paused) return;
+
+    bird.velocity += gravity;
+    bird.y += bird.velocity;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // Draw Bird
+    ctx.drawImage(birdImg,bird.x,bird.y,bird.width,bird.height);
+
+    // Draw Pipes
+    pipes.forEach(pipe=>{
+        pipe.x -= difficultySettings[difficulty]; // speed based on difficulty
+
+        ctx.fillStyle="green";
+        ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
+        ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
+
+        // Collision
+        if(bird.x < pipe.x + pipe.width &&
+           bird.x + bird.width > pipe.x &&
+           (bird.y < pipe.top || bird.y + bird.height > canvas.height - pipe.bottom)){
+            endGame();
+        }
+
+        // Score
+        if(!pipe.passed && pipe.x + pipe.width < bird.x){
+            score++;
+            pipe.passed = true;
+        }
+    });
+
+    // Bird out of bounds
+    if(bird.y + bird.height > canvas.height || bird.y < 0){ endGame(); }
+
+    // Draw Scores
+    ctx.fillStyle="black";
+    ctx.font="25px Arial";
+    ctx.fillText("Score: "+score,20,40);
+    ctx.fillText("High Score: "+highScore,20,70);
+
+    // Medal on Game Over
+    if(gameOver){
+        ctx.fillText("Medal: " + getMedal(score), canvas.width/2 - 60, canvas.height/2 + 40);
+    }
+
+    // Day/Night Theme
+    updateTheme();
+
+    requestAnimationFrame(update);
+}
+
+// Jump Function
+function jump(){
+    if(gameStarted && !gameOver){ bird.velocity = -10; }
+}
+
+// Mouse / Touch Events
+document.addEventListener("click", jump);
+document.addEventListener("touchstart", function(e){ e.preventDefault(); jump(); });
+
+// Buttons
+startBtn.addEventListener("click",startGame);
+restartBtn.addEventListener("click",startGame);
+
+// Settings button toggle
+settingsBtn.addEventListener("click", ()=>{
+    paused = !paused;
+    settingsPanel.style.display = settingsPanel.style.display === "block" ? "none" : "block";
+});
+
+// Difficulty change
+document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
+    radio.addEventListener("change",()=>{
+        difficulty = radio.value;
+    });
+});
+</script>
 
 </body>
 </html>
