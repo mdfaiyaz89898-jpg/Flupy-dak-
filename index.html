@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>My Bird Game</title>
+<title>Flappy Bird</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
-    margin: 0;
-    overflow: hidden;
-    background: skyblue;
+body{
+    margin:0;
+    overflow:hidden;
+    background:skyblue;
 }
 
-canvas {
-    display: block;
+canvas{
+    display:block;
 }
 </style>
 
@@ -33,28 +35,64 @@ birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
 let bird = {
     x: 100,
     y: 200,
-    width: 70,
-    height: 70
+    width: 60,
+    height: 60
 };
 
 let gravity = 0.6;
 let velocity = 0;
+let pipes = [];
+let score = 0;
 
-function update() {
+function createPipe(){
+    let gap = 160;
+    let topHeight = Math.random() * (canvas.height - gap - 200) + 50;
+
+    pipes.push({
+        x: canvas.width,
+        top: topHeight,
+        bottom: canvas.height - topHeight - gap
+    });
+}
+
+setInterval(createPipe, 2000);
+
+function update(){
     velocity += gravity;
     bird.y += velocity;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // Draw Bird
     ctx.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+
+    // Draw Pipes
+    ctx.fillStyle = "green";
+    pipes.forEach(pipe=>{
+        pipe.x -= 3;
+
+        ctx.fillRect(pipe.x,0,60,pipe.top);
+        ctx.fillRect(pipe.x,canvas.height - pipe.bottom,60,pipe.bottom);
+
+        // Score
+        if(pipe.x + 60 === bird.x){
+            score++;
+        }
+    });
+
+    // Score Text
+    ctx.fillStyle="black";
+    ctx.font="30px Arial";
+    ctx.fillText("Score: " + score,20,40);
 
     requestAnimationFrame(update);
 }
 
-birdImg.onload = function () {
+birdImg.onload=function(){
     update();
 };
 
-document.addEventListener("click", function () {
+document.addEventListener("click",function(){
     velocity = -10;
 });
 </script>
