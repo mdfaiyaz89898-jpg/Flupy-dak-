@@ -5,8 +5,7 @@
 </head>
 <body>
 
-<canvas id="gameCanvas" width="400" height="600" 
-style="background: skyblue;"></canvas>
+<canvas id="gameCanvas" width="400" height="600" style="background: skyblue;"></canvas>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
@@ -22,9 +21,26 @@ let bird = {
     height: 60
 };
 
-birdImg.onload = function () {
+let gravity = 0.5;
+let velocity = 0;
+
+function update() {
+    velocity += gravity;
+    bird.y += velocity;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+
+    requestAnimationFrame(update);
+}
+
+birdImg.onload = function () {
+    update();
 };
+
+document.addEventListener("click", function () {
+    velocity = -8;
+});
 </script>
 
 </body>
