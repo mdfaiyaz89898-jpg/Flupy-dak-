@@ -3,7 +3,6 @@
 <head>
 <title>Fluppy Bird</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 body{
     margin:0;
@@ -31,7 +30,7 @@ body{
 }
 
 /* Buttons */
-#startBtn, #restartBtn, #pauseBtn, #settingsBtn{
+#startBtn, #restartBtn, #pauseBtn, #settingsBtn, #backBtn{
     position:absolute;
     left:50%;
     transform:translateX(-50%);
@@ -44,6 +43,7 @@ body{
 }
 #startBtn{ top:50%; }
 #restartBtn{ top:50%; display:none; }
+#backBtn{ top:60%; display:none; }
 #pauseBtn{ top:10px; right:10px; transform:none; display:none; position:absolute; }
 #settingsBtn{ top:60%; left:50%; transform:translateX(-50%); }
 
@@ -71,12 +71,12 @@ body{
 canvas{ display:block; }
 </style>
 </head>
-
 <body>
 
 <div id="title">Fluppy Bird</div>
 <button id="startBtn">Play</button>
 <button id="restartBtn">Restart</button>
+<button id="backBtn">Back</button>
 <button id="pauseBtn">Pause</button>
 <button id="settingsBtn">Settings</button>
 
@@ -101,6 +101,7 @@ canvas.height = window.innerHeight;
 const title = document.getElementById("title");
 const startBtn = document.getElementById("startBtn");
 const restartBtn = document.getElementById("restartBtn");
+const backBtn = document.getElementById("backBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const settingsBtn = document.getElementById("settingsBtn");
 const settingsPanel = document.getElementById("settingsPanel");
@@ -116,6 +117,9 @@ highScore = localStorage.getItem("fluppyHighScore") || 0;
 // Difficulty speeds
 const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
 
+// Save selected difficulty globally
+let savedDifficulty = "Very Easy";
+
 // Init game
 function initGame(){
     bird = {x:100, y:200, width:60, height:60, velocity:0};
@@ -124,15 +128,15 @@ function initGame(){
     score = 0;
     gameOver = false;
     paused = false;
-    difficulty = "Very Easy";
+    difficulty = savedDifficulty;
     pipeSpeed = difficultySpeeds[difficulty];
     document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
 }
 
 // Create pipes
 function createPipe(){
-    const gap = 170;
-    const topHeight = Math.random() * (canvas.height - gap - 200) + 50;
+    const gap = 200; // bada gap
+    const topHeight = Math.random() * (canvas.height - gap - 150) + 50;
     pipes.push({x:canvas.width, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
 }
 
@@ -142,6 +146,7 @@ let pipeInterval;
 function startGame(){
     title.style.display="none";
     startBtn.style.display="none";
+    backBtn.style.display="none";
     settingsBtn.style.display="none";
     restartBtn.style.display="none";
     pauseBtn.style.display="block";
@@ -157,6 +162,7 @@ function endGame(){
     gameOver = true;
     clearInterval(pipeInterval);
     restartBtn.style.display="block";
+    backBtn.style.display="block";
     pauseBtn.style.display="none";
 
     if(score > highScore){
@@ -165,18 +171,10 @@ function endGame(){
     }
 }
 
-// Medal system
-function getMedal(score){
-    if(score >= 26) return "Gold 🥇";
-    if(score >= 16) return "Silver 🥈";
-    if(score >= 6) return "Bronze 🥉";
-    return "No Medal 😅";
-}
-
 // Day/Night theme
 function updateTheme(){
-    if(score>=10) canvas.style.background="#1a1a2e";
-    else if(score>=5) canvas.style.background="#70c5ce";
+    if(score>=10) canvas.style.background="#1a1a2e"; // night
+    else if(score>=5) canvas.style.background="#70c5ce"; // day
 }
 
 // Update loop
@@ -219,10 +217,6 @@ function update(){
     ctx.fillText("Score: "+score,20,40);
     ctx.fillText("High Score: "+highScore,20,70);
 
-    if(gameOver){
-        ctx.fillText("Medal: "+getMedal(score), canvas.width/2-60, canvas.height/2+40);
-    }
-
     updateTheme();
     requestAnimationFrame(update);
 }
@@ -237,6 +231,15 @@ document.addEventListener("touchstart", e=>{e.preventDefault(); jump();});
 // Buttons
 startBtn.addEventListener("click",startGame);
 restartBtn.addEventListener("click",startGame);
+backBtn.addEventListener("click",()=>{
+    gameStarted=false;
+    title.style.display="block";
+    startBtn.style.display="block";
+    backBtn.style.display="none";
+    restartBtn.style.display="none";
+    settingsBtn.style.display="block";
+    pauseBtn.style.display="none";
+});
 
 // Pause button
 pauseBtn.addEventListener("click",()=>{
@@ -245,12 +248,15 @@ pauseBtn.addEventListener("click",()=>{
 });
 
 // Settings button
-settingsBtn.addEventListener("click",()=>{ settingsPanel.style.display = settingsPanel.style.display==='block'?'none':'block'; });
+settingsBtn.addEventListener("click",()=>{ 
+    settingsPanel.style.display = settingsPanel.style.display==='block'?'none':'block'; 
+});
 
 // Difficulty select
 document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
     radio.addEventListener("change",()=>{
         difficulty = radio.value;
+        savedDifficulty = radio.value; // save globally
         pipeSpeed = difficultySpeeds[difficulty];
     });
 });
