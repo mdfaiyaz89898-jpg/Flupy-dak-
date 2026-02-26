@@ -4,25 +4,28 @@
 <title>Fluppy Bird</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body{ margin:0; overflow:hidden; background:skyblue; font-family:Arial; }
+body{ margin:0; overflow:hidden; font-family:Arial; background:skyblue;}
 canvas{ display:block; }
 
 /* Starting Screen */
 #titleScreen, #settingsScreen{ position:absolute; width:100%; height:100%; top:0; left:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
 #titleScreen{ background:skyblue; }
-#titleScreen h1{ font-size:60px; color:yellow; text-shadow:4px 4px 0px black,8px 8px 0px orange; font-family:'Comic Sans MS', cursive; animation:bounce 1s infinite alternate; margin-bottom:30px; }
-@keyframes bounce{ 0%{transform:translateY(0px);}100%{transform:translateY(-10px);} }
+#titleScreen h1{ font-size:60px; color:yellow; text-shadow:4px 4px 0px black,8px 8px 0px orange; font-family:'Comic Sans MS', cursive; animation:bounce 1s infinite alternate; margin-bottom:30px;}
+@keyframes bounce{0%{transform:translateY(0px);}100%{transform:translateY(-10px);}}
 #titleScreen button, #settingsScreen button{ padding:12px 30px; font-size:20px; border:none; border-radius:8px; margin:8px; background:orange; color:white; cursor:pointer; }
 #settingsScreen{ background:#f0f0f0; display:none; flex-direction:column; justify-content:flex-start; padding-top:60px; width:100%; height:100%; }
 #settingsScreen h2{ margin-bottom:20px; }
 #settingsScreen .backBtn{ position:absolute; top:10px; left:10px; font-size:25px; background:transparent; color:orange; border:none; cursor:pointer; }
 
 /* Difficulty Radio Buttons */
-#difficultyOptions label{ display:block; margin:10px; font-size:20px; cursor:pointer; }
+#difficultyOptions label{ display:block; margin:10px; font-size:20px; cursor:pointer; color:white; }
 #difficultyOptions input[type="radio"]{ margin-right:10px; accent-color:orange; }
+#difficultyOptions label.veryEasy{ background:#4caf50; padding:5px; border-radius:5px; }
+#difficultyOptions label.normal{ background:#ff9800; padding:5px; border-radius:5px; }
+#difficultyOptions label.hard{ background:#f44336; padding:5px; border-radius:5px; }
 
 /* In-Game UI */
-#pauseBtn, #restartBtn, #homeBtn{ position:absolute; top:10px; padding:8px 12px; border:none; border-radius:5px; background:orange; color:white; cursor:pointer; }
+#pauseBtn, #restartBtn, #homeBtn{ position:absolute; top:10px; padding:8px 12px; border:none; border-radius:5px; background:orange; color:white; cursor:pointer; font-size:16px;}
 #pauseBtn{ right:10px; display:none; }
 #restartBtn{ display:none; top:50%; left:50%; transform:translate(-50%,-50%); }
 #homeBtn{ display:none; top:50%; left:50%; transform:translate(-50%,70%); }
@@ -45,9 +48,9 @@ canvas{ display:block; }
     <button class="backBtn">&#8592;</button>
     <h2>Select Difficulty</h2>
     <div id="difficultyOptions">
-        <label><input type="radio" name="difficulty" value="Very Easy"> Very Easy</label>
-        <label><input type="radio" name="difficulty" value="Normal"> Normal</label>
-        <label><input type="radio" name="difficulty" value="Hard"> Hard</label>
+        <label class="veryEasy"><input type="radio" name="difficulty" value="Very Easy"> Very Easy</label>
+        <label class="normal"><input type="radio" name="difficulty" value="Normal"> Normal</label>
+        <label class="hard"><input type="radio" name="difficulty" value="Hard"> Hard</label>
     </div>
 </div>
 
@@ -86,8 +89,8 @@ const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
 
 // Initialize game
 function initGame(){
-    bird = {x:100, y:200, width:60, height:60, velocity:0};
-    gravity = 0.4; // easier gravity
+    bird = {x:100, y:200, width:60, height:60, velocity:0, rotation:0};
+    gravity = 0.35; // less gravity
     pipes = [];
     score = 0;
     gameOver = false;
@@ -126,8 +129,7 @@ function endGame(){
     restartBtn.style.display="block";
     homeBtn.style.display="block";
     pauseBtn.style.display="none";
-
-    if(score>highScore){ highScore = score; localStorage.setItem("fluppyHighScore",highScore); }
+    if(score>highScore){ highScore=score; localStorage.setItem("fluppyHighScore",highScore);}
 }
 
 // Update loop
@@ -136,13 +138,20 @@ function update(){
 
     bird.velocity += gravity;
     bird.y += bird.velocity;
+    bird.rotation = Math.min(bird.velocity*5,25); // rotation based on velocity
 
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // Bird bounce
+    // Day/Night background
+    if(score>=10){ canvas.style.background="#1a1a2e"; } 
+    else if(score>=5){ canvas.style.background="#70c5ce"; }
+    else { canvas.style.background="skyblue"; }
+
+    // Bird draw with rotation + bounce
     ctx.save();
-    const bounce = Math.sin(Date.now()/150)*5;
-    ctx.drawImage(birdImg,bird.x,bird.y+bounce,bird.width,bird.height);
+    ctx.translate(bird.x+bird.width/2,bird.y+bird.height/2);
+    ctx.rotate(bird.rotation*Math.PI/180);
+    ctx.drawImage(birdImg,-bird.width/2,-bird.height/2,bird.width,bird.height);
     ctx.restore();
 
     // Pipes
@@ -156,14 +165,12 @@ function update(){
             endGame();
         }
 
-        if(!pipe.passed && pipe.x+pipe.width<bird.x){
-            score++; pipe.passed=true;
-        }
+        if(!pipe.passed && pipe.x+pipe.width<bird.x){ score++; pipe.passed=true;}
     });
 
     if(bird.y+bird.height>canvas.height || bird.y<0) endGame();
 
-    // Scores
+    // Score display
     ctx.fillStyle="black"; ctx.font="25px Arial";
     ctx.fillText("Score: "+score,20,40);
     ctx.fillText("High Score: "+highScore,20,70);
@@ -172,7 +179,7 @@ function update(){
 }
 
 // Jump
-function jump(){ if(gameStarted && !gameOver) bird.velocity=-6; } // less jump
+function jump(){ if(gameStarted && !gameOver) bird.velocity=-6; } // smaller jump
 document.addEventListener("click", jump);
 document.addEventListener("touchstart", e=>{ e.preventDefault(); jump(); });
 
@@ -205,4 +212,4 @@ homeBtn.addEventListener("click",()=>{
 });
 </script>
 </body>
-</html>
+    </html>
