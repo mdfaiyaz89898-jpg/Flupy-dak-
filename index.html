@@ -1,162 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Flupy Dak Pro 🐤</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body{
-margin:0;
-overflow:hidden;
-background:linear-gradient(skyblue,white);
-}
-canvas{
-display:block;
-margin:0 auto;
-}
-button{
-position:absolute;
-top:60%;
-left:50%;
-transform:translate(-50%,-50%);
-padding:15px 30px;
-font-size:18px;
-border:none;
-border-radius:10px;
-background:black;
-color:white;
-display:none;
-}
-</style>
+    <title>My Bird Game</title>
 </head>
 <body>
 
-<canvas id="game"></canvas>
-<button id="restartBtn">Restart 🔄</button>
+<canvas id="gameCanvas" width="400" height="600" 
+style="background: skyblue;"></canvas>
 
 <script>
-let canvas = document.getElementById("game");
-let ctx = canvas.getContext("2d");
-let restartBtn = document.getElementById("restartBtn");
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+const birdImg = new Image();
+birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
 
-let bird, pipes, score, highScore, gameOver;
-
-function init(){
-bird = {
-x:120,
-y:200,
-radius:20,
-gravity:0.5,
-lift:-9,
-velocity:0
+let bird = {
+    x: 150,
+    y: 250,
+    width: 60,
+    height: 60
 };
-pipes = [];
-score = 0;
-highScore = localStorage.getItem("highScore") || 0;
-gameOver = false;
-restartBtn.style.display="none";
-}
 
-function drawBird(){
-ctx.fillStyle="yellow";
-ctx.beginPath();
-ctx.arc(bird.x,bird.y,bird.radius,0,Math.PI*2);
-ctx.fill();
-}
-
-function drawPipes(){
-ctx.fillStyle="green";
-pipes.forEach(pipe=>{
-ctx.fillRect(pipe.x,0,60,pipe.top);
-ctx.fillRect(pipe.x,pipe.bottom,60,canvas.height);
-
-if(
-bird.x + bird.radius > pipe.x &&
-bird.x - bird.radius < pipe.x + 60 &&
-(bird.y - bird.radius < pipe.top ||
- bird.y + bird.radius > pipe.bottom)
-){
-endGame();
-}
-
-if(!pipe.passed && pipe.x + 60 < bird.x){
-pipe.passed = true;
-score++;
-}
-});
-}
-
-function update(){
-bird.velocity += bird.gravity;
-bird.y += bird.velocity;
-
-if(bird.y > canvas.height || bird.y < 0){
-endGame();
-}
-
-pipes.forEach(pipe=>{
-pipe.x -= 3;
-});
-}
-
-function createPipe(){
-if(gameOver) return;
-let gap = 170;
-let top = Math.random()*(canvas.height/2);
-pipes.push({
-x:canvas.width,
-top:top,
-bottom:top+gap,
-passed:false
-});
-}
-
-setInterval(createPipe,1800);
-
-function drawScore(){
-ctx.fillStyle="black";
-ctx.font="25px Arial";
-ctx.fillText("Score: "+score,20,40);
-ctx.fillText("High: "+highScore,20,70);
-}
-
-function endGame(){
-if(score > highScore){
-localStorage.setItem("highScore",score);
-}
-gameOver = true;
-restartBtn.style.display="block";
-}
-
-function loop(){
-ctx.clearRect(0,0,canvas.width,canvas.height);
-drawBird();
-drawPipes();
-if(!gameOver){
-update();
-requestAnimationFrame(loop);
-}
-drawScore();
-}
-
-function jump(){
-if(!gameOver){
-bird.velocity = bird.lift;
-}
-}
-
-window.addEventListener("click",jump);
-window.addEventListener("touchstart",jump);
-
-restartBtn.addEventListener("click",()=>{
-init();
-loop();
-});
-
-init();
-loop();
+birdImg.onload = function () {
+    ctx.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+};
 </script>
 
 </body>
