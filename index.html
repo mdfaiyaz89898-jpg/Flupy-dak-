@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Flupy Dak 🐤</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+margin:0;
+overflow:hidden;
+background:skyblue;
+}
+
+canvas{
+display:block;
+margin:0 auto;
+background:linear-gradient(skyblue,white);
+}
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<script>
+let canvas = document.getElementById("game");
+let ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let bird = {
+x:100,
+y:150,
+size:20,
+gravity:0.6,
+lift:-10,
+velocity:0
+};
+
+let pipes = [];
+let score = 0;
+
+function drawBird(){
+ctx.fillStyle="yellow";
+ctx.beginPath();
+ctx.arc(bird.x,bird.y,bird.size,0,Math.PI*2);
+ctx.fill();
+}
+
+function drawPipes(){
+ctx.fillStyle="green";
+pipes.forEach(pipe=>{
+ctx.fillRect(pipe.x,0,50,pipe.top);
+ctx.fillRect(pipe.x,pipe.bottom,50,canvas.height);
+});
+}
+
+function update(){
+bird.velocity += bird.gravity;
+bird.y += bird.velocity;
+
+if(bird.y + bird.size > canvas.height){
+bird.y = canvas.height - bird.size;
+bird.velocity = 0;
+}
+
+pipes.forEach(pipe=>{
+pipe.x -= 3;
+
+if(pipe.x + 50 < 0){
+score++;
+}
+});
+}
+
+function createPipe(){
+let gap = 150;
+let top = Math.random()* (canvas.height/2);
+pipes.push({
+x:canvas.width,
+top:top,
+bottom:top+gap
+});
+}
+
+setInterval(createPipe,2000);
+
+function drawScore(){
+ctx.fillStyle="black";
+ctx.font="30px Arial";
+ctx.fillText("Score: "+score,20,40);
+}
+
+function loop(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+drawBird();
+drawPipes();
+update();
+drawScore();
+requestAnimationFrame(loop);
+}
+
+loop();
+
+window.addEventListener("click",()=>{
+bird.velocity = bird.lift;
+});
+</script>
+
+</body>
+</html>
