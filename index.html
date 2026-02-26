@@ -8,25 +8,42 @@ body{
 margin:0;
 overflow:hidden;
 background:skyblue;
+text-align:center;
 }
 canvas{
 display:block;
 margin:0 auto;
+}
+button{
+position:absolute;
+top:60%;
+left:50%;
+transform:translate(-50%,-50%);
+padding:15px 30px;
+font-size:18px;
+border:none;
+border-radius:10px;
+display:none;
 }
 </style>
 </head>
 <body>
 
 <canvas id="game"></canvas>
+<button id="restartBtn">Restart 🔄</button>
 
 <script>
 let canvas = document.getElementById("game");
 let ctx = canvas.getContext("2d");
+let restartBtn = document.getElementById("restartBtn");
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let bird = {
+let bird, pipes, score, gameOver;
+
+function init(){
+bird = {
 x:100,
 y:150,
 size:20,
@@ -34,10 +51,11 @@ gravity:0.6,
 lift:-10,
 velocity:0
 };
-
-let pipes = [];
-let score = 0;
-let gameOver = false;
+pipes = [];
+score = 0;
+gameOver = false;
+restartBtn.style.display="none";
+}
 
 function drawBird(){
 ctx.fillStyle="yellow";
@@ -58,29 +76,29 @@ bird.x - bird.size < pipe.x + 50 &&
 (bird.y - bird.size < pipe.top ||
  bird.y + bird.size > pipe.bottom)
 ){
-gameOver = true;
+endGame();
 }
 });
 }
 
 function update(){
-if(gameOver) return;
-
 bird.velocity += bird.gravity;
 bird.y += bird.velocity;
 
 if(bird.y + bird.size > canvas.height){
-gameOver = true;
+endGame();
 }
 
 pipes.forEach(pipe=>{
 pipe.x -= 3;
+if(pipe.x === bird.x){
+score++;
+}
 });
 }
 
 function createPipe(){
 if(gameOver) return;
-
 let gap = 150;
 let top = Math.random()*(canvas.height/2);
 pipes.push({
@@ -98,36 +116,35 @@ ctx.font="30px Arial";
 ctx.fillText("Score: "+score,20,40);
 }
 
-function drawGameOver(){
-if(gameOver){
-ctx.fillStyle="red";
-ctx.font="50px Arial";
-ctx.fillText("GAME OVER",canvas.width/2-150,canvas.height/2);
-}
+function endGame(){
+gameOver = true;
+restartBtn.style.display="block";
 }
 
 function loop(){
 ctx.clearRect(0,0,canvas.width,canvas.height);
-
 drawBird();
 drawPipes();
-update();
-drawScore();
-drawGameOver();
-
 if(!gameOver){
-score++;
+update();
 requestAnimationFrame(loop);
 }
+drawScore();
 }
-
-loop();
 
 window.addEventListener("click",()=>{
 if(!gameOver){
 bird.velocity = bird.lift;
 }
 });
+
+restartBtn.addEventListener("click",()=>{
+init();
+loop();
+});
+
+init();
+loop();
 </script>
 
 </body>
