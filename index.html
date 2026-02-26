@@ -1,27 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Bird Game</title>
+<title>My Bird Game</title>
+
+<style>
+body {
+    margin: 0;
+    overflow: hidden;
+    background: skyblue;
+}
+
+canvas {
+    display: block;
+}
+</style>
+
 </head>
 <body>
 
-<canvas id="gameCanvas" width="400" height="600" style="background: skyblue;"></canvas>
+<canvas id="gameCanvas"></canvas>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
 const birdImg = new Image();
 birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
 
 let bird = {
-    x: 150,
-    y: 250,
-    width: 60,
-    height: 60
+    x: 100,
+    y: 200,
+    width: 70,
+    height: 70
 };
 
-let gravity = 0.5;
+let gravity = 0.6;
 let velocity = 0;
 
 function update() {
@@ -39,7 +55,7 @@ birdImg.onload = function () {
 };
 
 document.addEventListener("click", function () {
-    velocity = -8;
+    velocity = -10;
 });
 </script>
 
