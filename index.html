@@ -24,9 +24,16 @@ body{
     text-shadow:
         4px 4px 0px black,
         8px 8px 0px orange;
+    font-family: 'Comic Sans MS', cursive;
+    animation: bounce 1s infinite alternate;
 }
 
-/* Start Button */
+@keyframes bounce{
+    from{ transform: translateY(0px); }
+    to{ transform: translateY(-10px); }
+}
+
+/* Start / Restart Button */
 #startBtn, #restartBtn{
     position:absolute;
     left:50%;
@@ -39,7 +46,6 @@ body{
     color:white;
 }
 
-/* Button Positions */
 #startBtn{
     top:45%;
 }
@@ -72,124 +78,8 @@ canvas{
 
 <canvas id="gameCanvas"></canvas>
 
-<script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-const title = document.getElementById("title");
-const startBtn = document.getElementById("startBtn");
-const restartBtn = document.getElementById("restartBtn");
-
-const birdImg = new Image();
-birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
-
-let bird, gravity, velocity, pipes, score, highScore, gameOver, gameStarted;
-
-highScore = localStorage.getItem("highScore") || 0;
-
-function initGame(){
-    bird = { x:100, y:200, width:60, height:60 };
-    gravity = 0.6;
-    velocity = 0;
-    pipes = [];
-    score = 0;
-    gameOver = false;
-}
-
-function createPipe(){
-    let gap = 170;
-    let topHeight = Math.random() * (canvas.height - gap - 200) + 50;
-
-    pipes.push({
-        x: canvas.width,
-        width: 60,
-        top: topHeight,
-        bottom: canvas.height - topHeight - gap,
-        passed:false
-    });
-}
-
-let pipeInterval;
-
-function startGame(){
-    title.style.display="none";
-    startBtn.style.display="none";
-    restartBtn.style.display="none";
-
-    gameStarted = true;
-    initGame();
-    pipeInterval = setInterval(createPipe,2000);
-    update();
-}
-
-function endGame(){
-    gameOver = true;
-    clearInterval(pipeInterval);
-    restartBtn.style.display="block";
-
-    if(score > highScore){
-        highScore = score;
-        localStorage.setItem("highScore", highScore);
-    }
-}
-
-function update(){
-
-    if(!gameStarted || gameOver) return;
-
-    velocity += gravity;
-    bird.y += velocity;
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    ctx.drawImage(birdImg,bird.x,bird.y,bird.width,bird.height);
-
-    pipes.forEach(pipe=>{
-        pipe.x -= 3;
-
-        ctx.fillStyle="green";
-        ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
-        ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
-
-        if(
-            bird.x < pipe.x + pipe.width &&
-            bird.x + bird.width > pipe.x &&
-            (bird.y < pipe.top || bird.y + bird.height > canvas.height - pipe.bottom)
-        ){
-            endGame();
-        }
-
-        if(!pipe.passed && pipe.x + pipe.width < bird.x){
-            score++;
-            pipe.passed = true;
-        }
-    });
-
-    if(bird.y + bird.height > canvas.height || bird.y < 0){
-        endGame();
-    }
-
-    ctx.fillStyle="black";
-    ctx.font="25px Arial";
-    ctx.fillText("Score: "+score,20,40);
-    ctx.fillText("High Score: "+highScore,20,70);
-
-    requestAnimationFrame(update);
-}
-
-document.addEventListener("click",function(){
-    if(gameStarted && !gameOver){
-        velocity = -10;
-    }
-});
-
-startBtn.addEventListener("click",startGame);
-restartBtn.addEventListener("click",startGame);
-
-</script>
+<!-- New JS file linked here -->
+<script src="gameV2.js"></script>
 
 </body>
 </html>
