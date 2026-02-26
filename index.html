@@ -9,9 +9,30 @@ body{
     margin:0;
     overflow:hidden;
     background:skyblue;
+    font-family: Arial;
 }
 canvas{
     display:block;
+}
+button{
+    position:absolute;
+    padding:12px 25px;
+    font-size:18px;
+    border:none;
+    border-radius:8px;
+    background:orange;
+    color:white;
+}
+#startBtn{
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+}
+#restartBtn{
+    top:60%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    display:none;
 }
 </style>
 </head>
@@ -20,6 +41,9 @@ canvas{
 
 <canvas id="gameCanvas"></canvas>
 
+<button id="startBtn">Play</button>
+<button id="restartBtn">Restart</button>
+
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -27,21 +51,24 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+const startBtn = document.getElementById("startBtn");
+const restartBtn = document.getElementById("restartBtn");
+
 const birdImg = new Image();
 birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
 
-let bird = {
-    x: 100,
-    y: 200,
-    width: 60,
-    height: 60
-};
+let bird, gravity, velocity, pipes, score, highScore, gameOver, gameStarted;
 
-let gravity = 0.6;
-let velocity = 0;
-let pipes = [];
-let score = 0;
-let gameOver = false;
+highScore = localStorage.getItem("highScore") || 0;
+
+function initGame(){
+    bird = { x:100, y:200, width:60, height:60 };
+    gravity = 0.6;
+    velocity = 0;
+    pipes = [];
+    score = 0;
+    gameOver = false;
+}
 
 function createPipe(){
     let gap = 170;
@@ -52,26 +79,39 @@ function createPipe(){
         width: 60,
         top: topHeight,
         bottom: canvas.height - topHeight - gap,
-        passed: false
+        passed:false
     });
 }
 
-setInterval(createPipe, 2000);
+let pipeInterval;
 
-function resetGame(){
-    bird.y = 200;
-    velocity = 0;
-    pipes = [];
-    score = 0;
-    gameOver = false;
+function startGame(){
+    initGame();
+    gameStarted = true;
+    startBtn.style.display="none";
+    restartBtn.style.display="none";
+    pipeInterval = setInterval(createPipe,2000);
+    update();
+}
+
+function endGame(){
+    gameOver = true;
+    restartBtn.style.display="block";
+
+    if(score > highScore){
+        highScore = score;
+        localStorage.setItem("highScore", highScore);
+    }
 }
 
 function update(){
 
+    if(!gameStarted) return;
+
     if(gameOver){
         ctx.fillStyle="red";
         ctx.font="40px Arial";
-        ctx.fillText("Game Over", canvas.width/2 - 100, canvas.height/2);
+        ctx.fillText("Game Over", canvas.width/2-110, canvas.height/2-50);
         return;
     }
 
@@ -80,58 +120,64 @@ function update(){
 
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // Draw Bird
-    ctx.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+    // Title
+    ctx.fillStyle="black";
+    ctx.font="35px Arial";
+    ctx.fillText("Flappy Bird",20,50);
+
+    ctx.font="20px Arial";
+    ctx.fillText("Made by TrollHunter",20,80);
+
+    // Bird
+    ctx.drawImage(birdImg,bird.x,bird.y,bird.width,bird.height);
 
     pipes.forEach(pipe=>{
         pipe.x -= 3;
 
-        // Draw Pipes
         ctx.fillStyle="green";
         ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
-        ctx.fillRect(pipe.x,canvas.height - pipe.bottom,pipe.width,pipe.bottom);
+        ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
 
-        // Collision Detection
+        // Collision
         if(
             bird.x < pipe.x + pipe.width &&
             bird.x + bird.width > pipe.x &&
             (bird.y < pipe.top || bird.y + bird.height > canvas.height - pipe.bottom)
         ){
-            gameOver = true;
+            clearInterval(pipeInterval);
+            endGame();
         }
 
-        // Score System
+        // Score
         if(!pipe.passed && pipe.x + pipe.width < bird.x){
             score++;
             pipe.passed = true;
         }
     });
 
-    // Ground / Top Collision
     if(bird.y + bird.height > canvas.height || bird.y < 0){
-        gameOver = true;
+        clearInterval(pipeInterval);
+        endGame();
     }
 
-    // Score Text
+    // Score Display
     ctx.fillStyle="black";
     ctx.font="30px Arial";
-    ctx.fillText("Score: " + score,20,40);
+    ctx.fillText("Score: "+score,20,120);
+    ctx.fillText("High Score: "+highScore,20,160);
 
     requestAnimationFrame(update);
 }
 
-birdImg.onload=function(){
-    update();
-};
-
 document.addEventListener("click",function(){
-    if(gameOver){
-        resetGame();
-        update();
-    }else{
+    if(gameStarted && !gameOver){
         velocity = -10;
     }
 });
+
+startBtn.addEventListener("click",startGame);
+restartBtn.addEventListener("click",startGame);
+
 </script>
 
 </body>
