@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Flupy Dak 🐤</title>
+<title>Flupy Dak Pro 🐤</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{
@@ -33,21 +33,13 @@ display:none;
 <canvas id="game"></canvas>
 <button id="restartBtn">Restart 🔄</button>
 
-<audio id="jumpSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
-<audio id="hitSound" src="https://actions.google.com/sounds/v1/cartoon/concussive_hit_guitar_boing.ogg"></audio>
-
 <script>
 let canvas = document.getElementById("game");
 let ctx = canvas.getContext("2d");
 let restartBtn = document.getElementById("restartBtn");
-let jumpSound = document.getElementById("jumpSound");
-let hitSound = document.getElementById("hitSound");
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-
-let birdImg = new Image();
-birdImg.src = "https://i.imgur.com/QZ7Z8vH.png"; // bird image
 
 let bird, pipes, score, highScore, gameOver;
 
@@ -55,7 +47,7 @@ function init(){
 bird = {
 x:120,
 y:200,
-size:40,
+radius:20,
 gravity:0.5,
 lift:-9,
 velocity:0
@@ -68,7 +60,10 @@ restartBtn.style.display="none";
 }
 
 function drawBird(){
-ctx.drawImage(birdImg,bird.x-20,bird.y-20,40,40);
+ctx.fillStyle="yellow";
+ctx.beginPath();
+ctx.arc(bird.x,bird.y,bird.radius,0,Math.PI*2);
+ctx.fill();
 }
 
 function drawPipes(){
@@ -78,10 +73,10 @@ ctx.fillRect(pipe.x,0,60,pipe.top);
 ctx.fillRect(pipe.x,pipe.bottom,60,canvas.height);
 
 if(
-bird.x + 20 > pipe.x &&
-bird.x - 20 < pipe.x + 60 &&
-(bird.y - 20 < pipe.top ||
- bird.y + 20 > pipe.bottom)
+bird.x + bird.radius > pipe.x &&
+bird.x - bird.radius < pipe.x + 60 &&
+(bird.y - bird.radius < pipe.top ||
+ bird.y + bird.radius > pipe.bottom)
 ){
 endGame();
 }
@@ -131,7 +126,6 @@ function endGame(){
 if(score > highScore){
 localStorage.setItem("highScore",score);
 }
-hitSound.play();
 gameOver = true;
 restartBtn.style.display="block";
 }
@@ -150,7 +144,6 @@ drawScore();
 function jump(){
 if(!gameOver){
 bird.velocity = bird.lift;
-jumpSound.play();
 }
 }
 
