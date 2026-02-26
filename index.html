@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Flappy Bird</title>
+<title>Fluppy Bird</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -10,50 +10,64 @@ body{
     overflow:hidden;
     background:skyblue;
     font-family: Arial;
-    text-align:center;
 }
 
-canvas{
-    display:block;
-}
-
-#startScreen{
-    position:absolute;
-    width:100%;
-    top:30%;
-}
-
+/* Cartoon Style Title */
 #title{
-    font-size:50px;
-    font-weight:bold;
-    margin-bottom:20px;
-}
-
-#madeBy{
     position:absolute;
-    bottom:20px;
-    left:20px;
-    font-size:14px;
+    top:20%;
+    width:100%;
+    text-align:center;
+    font-size:60px;
+    font-weight:bold;
+    color:yellow;
+    text-shadow:
+        4px 4px 0px black,
+        8px 8px 0px orange;
 }
 
-button{
-    padding:12px 25px;
-    font-size:18px;
+/* Start Button */
+#startBtn, #restartBtn{
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    padding:12px 30px;
+    font-size:20px;
     border:none;
     border-radius:8px;
     background:orange;
     color:white;
+}
+
+/* Button Positions */
+#startBtn{
+    top:45%;
+}
+
+#restartBtn{
+    top:45%;
+    display:none;
+}
+
+/* Made by text */
+#madeBy{
+    position:absolute;
+    bottom:15px;
+    left:15px;
+    font-size:14px;
+}
+
+canvas{
+    display:block;
 }
 </style>
 </head>
 
 <body>
 
-<div id="startScreen">
-    <div id="title">Flappy Bird</div>
-    <button id="startBtn">Play</button>
-</div>
-
+<div id="title">Fluppy Bird</div>
+<button id="startBtn">Play</button>
+<button id="restartBtn">Restart</button>
 <div id="madeBy">Made by TrollHunter</div>
 
 <canvas id="gameCanvas"></canvas>
@@ -65,13 +79,14 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const startScreen = document.getElementById("startScreen");
+const title = document.getElementById("title");
 const startBtn = document.getElementById("startBtn");
+const restartBtn = document.getElementById("restartBtn");
 
 const birdImg = new Image();
 birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
 
-let bird, gravity, velocity, pipes, score, highScore, gameOver;
+let bird, gravity, velocity, pipes, score, highScore, gameOver, gameStarted;
 
 highScore = localStorage.getItem("highScore") || 0;
 
@@ -100,7 +115,11 @@ function createPipe(){
 let pipeInterval;
 
 function startGame(){
-    startScreen.style.display="none";
+    title.style.display="none";
+    startBtn.style.display="none";
+    restartBtn.style.display="none";
+
+    gameStarted = true;
     initGame();
     pipeInterval = setInterval(createPipe,2000);
     update();
@@ -109,20 +128,17 @@ function startGame(){
 function endGame(){
     gameOver = true;
     clearInterval(pipeInterval);
+    restartBtn.style.display="block";
 
     if(score > highScore){
         highScore = score;
         localStorage.setItem("highScore", highScore);
     }
-
-    setTimeout(()=>{
-        startScreen.style.display="block";
-    },1500);
 }
 
 function update(){
 
-    if(gameOver) return;
+    if(!gameStarted || gameOver) return;
 
     velocity += gravity;
     bird.y += velocity;
@@ -165,12 +181,13 @@ function update(){
 }
 
 document.addEventListener("click",function(){
-    if(startScreen.style.display==="none" && !gameOver){
+    if(gameStarted && !gameOver){
         velocity = -10;
     }
 });
 
 startBtn.addEventListener("click",startGame);
+restartBtn.addEventListener("click",startGame);
 
 </script>
 
