@@ -265,9 +265,38 @@ function update() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Background
+    // Background draw karo
+if(Math.floor(score / 5) % 2 === 0){
+    // Day
     ctx.fillStyle = "skyblue";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Sun
+    ctx.fillStyle = "yellow";
+    ctx.beginPath();
+    ctx.arc(canvas.width - 100, 100, 50, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cloud / ghar placeholder
+    ctx.fillStyle = "white";
+    ctx.fillRect(50, canvas.height - 150, 120, 60); // simple cloud rectangle
+} else {
+    // Night
+    ctx.fillStyle = "#1a1a2e"; // dark night color
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Stars
+    ctx.fillStyle = "white";
+    for(let i=0; i<50; i++){
+        ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height/2, 2, 2);
+    }
+
+    // Moon
+    ctx.fillStyle = "#ffffcc";
+    ctx.beginPath();
+    ctx.arc(canvas.width - 100, 100, 40, 0, Math.PI * 2);
+    ctx.fill();
+}
 
     // Draw pipes with skin-based color
     pipes.forEach(pipe => {
