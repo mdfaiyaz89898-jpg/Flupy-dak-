@@ -130,9 +130,7 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const titleScreen = document.getElementById("titleScreen");
-const settingsScreen = document.getElementById("settingsScreen");
-const storeScreen = document.getElementById("storeScreen");
+// --- Buttons ---
 const playBtn = document.getElementById("playBtn");
 const settingsBtnMain = document.getElementById("settingsBtnMain");
 const storeBtn = document.getElementById("storeBtn");
@@ -142,60 +140,64 @@ const pauseBtn = document.getElementById("pauseBtn");
 const restartBtn = document.getElementById("restartBtn");
 const homeBtn = document.getElementById("homeBtn");
 const confirmSkinBtn = document.getElementById("confirmSkinBtn");
-const upperSkinDisplay = document.getElementById("upperSkinDisplay");
-const skinRow = document.getElementById("skinRow");
-// Button event listeners
-playBtn.addEventListener("click", () => { startGame(); });
 
-settingsBtnMain.addEventListener("click", () => {
+// --- Play button ---
+playBtn.addEventListener("click", ()=>{
+    startGame();
+});
+
+// --- Settings button ---
+settingsBtnMain.addEventListener("click", ()=>{
     titleScreen.style.display = "none";
     settingsScreen.style.display = "flex";
 });
 
-storeBtn.addEventListener("click", () => {
-    storeScreen.style.display = "flex";
-    renderSkins();
-    titleScreen.style.display = "none";
-});
-
-backBtn.addEventListener("click", () => {
+// --- Back button (Settings) ---
+backBtn.addEventListener("click", ()=>{
     settingsScreen.style.display = "none";
     titleScreen.style.display = "flex";
 });
 
-backStoreBtn.addEventListener("click", () => {
+// --- Store button ---
+storeBtn.addEventListener("click", ()=>{
+    titleScreen.style.display = "none";
+    storeScreen.style.display = "flex";
+    renderSkins(); // render skins when store opens
+});
+
+// --- Back button (Store) ---
+backStoreBtn.addEventListener("click", ()=>{
     storeScreen.style.display = "none";
     titleScreen.style.display = "flex";
 });
 
-// ✅ Pause button listener
-pauseBtn.addEventListener("click", () => {
-    paused = !paused;       // toggle pause / unpause
-    if(!paused) update();   // agar unpause hua to game loop resume
+// --- Pause button ---
+pauseBtn.addEventListener("click", ()=>{
+    paused = !paused; // toggle pause
+    if(!paused) update(); // resume game loop if unpaused
 });
 
-restartBtn.addEventListener("click", () => { startGame(); });
+// --- Restart button ---
+restartBtn.addEventListener("click", ()=>{
+    startGame();
+});
 
-homeBtn.addEventListener("click", () => {
+// --- Home button ---
+homeBtn.addEventListener("click", ()=>{
     titleScreen.style.display = "flex";
     restartBtn.style.display = "none";
     homeBtn.style.display = "none";
     pauseBtn.style.display = "none";
 });
 
-confirmSkinBtn.addEventListener("click", () => {
+// --- Confirm Skin button ---
+confirmSkinBtn.addEventListener("click", ()=>{
     if(confirmSkinBtn.classList.contains("unlocked")){
         localStorage.setItem("selectedSkin", selectedSkin.name);
         storeScreen.style.display = "none";
         titleScreen.style.display = "flex";
     }
 });
-let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty;
-highScore = localStorage.getItem("fluppyHighScore") || 0;
-difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
-pipeSpeed = 2;
-const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
-
 // Skins
 let skins = [
   {name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png", unlockScore:0, pipeColor:"#00c853", groundColor:"#8B4513"},
