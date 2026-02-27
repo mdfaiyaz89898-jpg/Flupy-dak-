@@ -2,26 +2,32 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Flappy Bird Pro</title>
+
 <style>
 body{
     margin:0;
-    text-align:center;
     background:#70c5ce;
     font-family:sans-serif;
+    text-align:center;
+    overflow:hidden;
 }
+
 canvas{
     background:#70c5ce;
     display:block;
     margin:auto;
 }
+
 button{
-    padding:8px 15px;
+    padding:10px 15px;
     font-size:16px;
     margin:5px;
     border:none;
-    border-radius:8px;
+    border-radius:10px;
 }
+
 #pauseBtn{
     position:absolute;
     top:15px;
@@ -32,208 +38,240 @@ button{
     font-size:20px;
     display:none;
 }
-#store{
+
+#store,#settings{
     display:none;
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
     background:white;
-    padding:10px;
+    padding-top:60px;
 }
+
+.backBtn{
+    position:absolute;
+    top:15px;
+    left:15px;
+    font-size:25px;
+    background:none;
+}
+
 .skinBox{
     display:inline-block;
     margin:10px;
-    padding:10px;
-    border:2px solid #ccc;
-    border-radius:10px;
 }
 .skinBox img{
-    width:60px;
-    height:60px;
+    width:70px;
 }
 </style>
 </head>
 <body>
 
-<h2>Flappy Bird Pro</h2>
-<canvas id="game" width="350" height="500"></canvas>
+<h2 id="title">Flappy Bird Pro</h2>
+<canvas id="game"></canvas>
 
-<br>
+<div id="menu">
 <button id="startBtn">Start</button>
+<button onclick="openSettings()">Settings</button>
+<button onclick="openStore()">Store</button>
+</div>
+
 <button id="restartBtn" style="display:none;">Restart</button>
 <button id="homeBtn" style="display:none;">Home</button>
 <button id="pauseBtn">⏸️</button>
-<button onclick="openStore()">Store</button>
 
-<div id="store"></div>
+<div id="store">
+<button class="backBtn" onclick="closePanels()">⬅</button>
+<h3>Store</h3>
+<div id="storeContent"></div>
+</div>
+
+<div id="settings">
+<button class="backBtn" onclick="closePanels()">⬅</button>
+<h3>Select Difficulty</h3>
+<button onclick="setDifficulty('easy')">Very Easy</button>
+<button onclick="setDifficulty('normal')">Normal</button>
+<button onclick="setDifficulty('hard')">Hard</button>
+</div>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let birdY = 200;
-let velocity = 0;
-let gravity = 0.5;
-let pipes = [];
-let score = 0;
-let highScore = localStorage.getItem("highScore") || 0;
-let gameOver = false;
-let paused = false;
-let pipeInterval;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight-80;
 
-const skins = [
+let birdY, velocity, gravity=0.4;
+let pipes=[], score=0, highScore=localStorage.getItem("highScore")||0;
+let gameOver=false, paused=false, pipeInterval;
+let pipeGap=280, pipeSpeed=2;
+
+let difficulty = localStorage.getItem("difficulty") || "easy";
+applyDifficulty(difficulty);
+
+function applyDifficulty(level){
+    if(level==="easy"){ pipeGap=280; pipeSpeed=2; }
+    if(level==="normal"){ pipeGap=200; pipeSpeed=3; }
+    if(level==="hard"){ pipeGap=150; pipeSpeed=5; }
+    localStorage.setItem("difficulty",level);
+}
+
+function setDifficulty(level){
+    difficulty=level;
+    applyDifficulty(level);
+    alert("Saved: "+level);
+}
+
+const skins=[
 {name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png", unlockScore:0},
 {name:"Mango Bird", file:"Picsart_26-02-27_01-28-33-302.png", unlockScore:10},
 {name:"Happy Perrot", file:"Picsart_26-02-27_10-16-34-761.png", unlockScore:20},
 {name:"Angry Bird", file:"Picsart_26-02-27_10-15-45-688.png", unlockScore:30}
 ];
 
-let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
+let skinData=JSON.parse(localStorage.getItem("fluppySkins"))||{};
 skins.forEach(s=>{
-    if(!skinData[s.name]){
-        skinData[s.name] = {
-            unlocked: s.unlockScore===0,
-            selected: s.unlockScore===0
-        }
-    }
-});
+if(!skinData[s.name]){
+skinData[s.name]={unlocked:s.unlockScore===0,selected:s.unlockScore===0}
+}});
 localStorage.setItem("fluppySkins",JSON.stringify(skinData));
 
-let selectedSkin = skins.find(s=>skinData[s.name].selected);
-let birdImg = new Image();
-birdImg.src = selectedSkin.file;
+let selectedSkin=skins.find(s=>skinData[s.name].selected);
+let birdImg=new Image();
+birdImg.src=selectedSkin.file;
 
 function startGame(){
-    document.getElementById("pauseBtn").style.display="inline-block";
-    document.getElementById("startBtn").style.display="none";
-    score=0;
-    birdY=200;
-    velocity=0;
-    pipes=[];
-    gameOver=false;
-    paused=false;
-    pipeInterval=setInterval(createPipe,2000);
-    loop();
+document.getElementById("menu").style.display="none";
+document.getElementById("pauseBtn").style.display="block";
+birdY=canvas.height/2;
+velocity=0;
+pipes=[];
+score=0;
+gameOver=false;
+paused=false;
+pipeInterval=setInterval(createPipe,2000);
+loop();
 }
 
 function createPipe(){
-    let top = Math.random()*250;
-    pipes.push({x:350,top:top});
+let top=Math.random()*(canvas.height-300);
+pipes.push({x:canvas.width,top:top});
 }
 
 function loop(){
-    if(gameOver) return;
-    if(paused){ requestAnimationFrame(loop); return; }
+if(gameOver)return;
+if(paused){requestAnimationFrame(loop);return;}
 
-    ctx.clearRect(0,0,350,500);
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    velocity+=gravity;
-    birdY+=velocity;
+velocity+=gravity;
+birdY+=velocity;
 
-    ctx.drawImage(birdImg,50,birdY,40,40);
+ctx.save();
+ctx.translate(80,birdY);
+ctx.rotate(velocity*0.05);
+ctx.drawImage(birdImg,-20,-20,40,40);
+ctx.restore();
 
-    pipes.forEach(p=>{
-        p.x-=2;
-        ctx.fillStyle="green";
-        ctx.fillRect(p.x,0,40,p.top);
-        ctx.fillRect(p.x,p.top+120,40,500);
+pipes.forEach(p=>{
+p.x-=pipeSpeed;
+ctx.fillStyle="green";
+ctx.fillRect(p.x,0,50,p.top);
+ctx.fillRect(p.x,p.top+pipeGap,50,canvas.height);
 
-        if(p.x===48) score++;
+if(p.x===75)score++;
 
-        if(
-            (birdY < p.top || birdY+40 > p.top+120) &&
-            p.x<90 && p.x>40
-        ){
-            endGame();
-        }
-    });
+if((birdY-20<p.top||birdY+20>p.top+pipeGap)&&p.x<120&&p.x>40){
+endGame();
+}
+});
 
-    if(birdY>460) endGame();
+if(birdY>canvas.height)endGame();
 
-    ctx.fillStyle="black";
-    ctx.fillText("Score: "+score,10,20);
-    ctx.fillText("High: "+highScore,10,40);
+ctx.fillStyle="black";
+ctx.fillText("Score: "+score,20,30);
+ctx.fillText("High: "+highScore,20,50);
 
-    requestAnimationFrame(loop);
+requestAnimationFrame(loop);
 }
 
 function endGame(){
-    gameOver=true;
-    clearInterval(pipeInterval);
-    document.getElementById("restartBtn").style.display="inline-block";
-    document.getElementById("homeBtn").style.display="inline-block";
-    document.getElementById("pauseBtn").style.display="none";
+gameOver=true;
+clearInterval(pipeInterval);
+document.getElementById("pauseBtn").style.display="none";
+document.getElementById("restartBtn").style.display="inline-block";
+document.getElementById("homeBtn").style.display="inline-block";
 
-    if(score>highScore){
-        highScore=score;
-        localStorage.setItem("highScore",highScore);
-    }
-
-    skins.forEach(s=>{
-        if(score>=s.unlockScore){
-            skinData[s.name].unlocked=true;
-        }
-    });
-
-    localStorage.setItem("fluppySkins",JSON.stringify(skinData));
+if(score>highScore){
+highScore=score;
+localStorage.setItem("highScore",highScore);
 }
 
-document.addEventListener("keydown",()=>{
-    velocity=-8;
-});
+skins.forEach(s=>{
+if(score>=s.unlockScore){
+skinData[s.name].unlocked=true;
+}});
+localStorage.setItem("fluppySkins",JSON.stringify(skinData));
+}
 
-document.getElementById("restartBtn").onclick=()=>{
-    document.getElementById("restartBtn").style.display="none";
-    document.getElementById("homeBtn").style.display="none";
-    startGame();
-};
-
-document.getElementById("homeBtn").onclick=()=>{
-    location.reload();
-};
+canvas.addEventListener("click",()=>{ velocity=-5; });
 
 document.getElementById("pauseBtn").onclick=()=>{
-    paused=!paused;
-    const btn=document.getElementById("pauseBtn");
-    if(paused){
-        btn.innerHTML="▶️";
-    }else{
-        btn.innerHTML="⏸️";
-    }
+paused=!paused;
+document.getElementById("pauseBtn").innerHTML=paused?"▶️":"⏸️";
 };
 
+document.getElementById("restartBtn").onclick=()=>{
+document.getElementById("restartBtn").style.display="none";
+document.getElementById("homeBtn").style.display="none";
+startGame();
+};
+
+document.getElementById("homeBtn").onclick=()=>{ location.reload(); };
+
 function openStore(){
-    let store=document.getElementById("store");
-    store.innerHTML="";
-    store.style.display="block";
+document.getElementById("store").style.display="block";
+document.getElementById("menu").style.display="none";
+let store=document.getElementById("storeContent");
+store.innerHTML="";
+skins.forEach(s=>{
+let box=document.createElement("div");
+box.className="skinBox";
+let img=document.createElement("img");
+img.src=s.file;
+let btn=document.createElement("button");
 
-    skins.forEach(s=>{
-        let box=document.createElement("div");
-        box.className="skinBox";
-
-        let img=document.createElement("img");
-        img.src=s.file;
-
-        let btn=document.createElement("button");
-
-        if(skinData[s.name].unlocked){
-            btn.innerText="Select";
-            btn.onclick=()=>{
-                Object.keys(skinData).forEach(k=>skinData[k].selected=false);
-                skinData[s.name].selected=true;
-                localStorage.setItem("fluppySkins",JSON.stringify(skinData));
-                location.reload();
-            }
-        }else{
-            btn.innerText="Unlock at "+s.unlockScore;
-            btn.disabled=true;
-        }
-
-        box.appendChild(img);
-        box.appendChild(document.createElement("br"));
-        box.appendChild(btn);
-        store.appendChild(box);
-    });
+if(skinData[s.name].unlocked){
+btn.innerText="Select";
+btn.onclick=()=>{
+Object.keys(skinData).forEach(k=>skinData[k].selected=false);
+skinData[s.name].selected=true;
+localStorage.setItem("fluppySkins",JSON.stringify(skinData));
+location.reload();
+};
+}else{
+btn.innerText="Unlock at "+s.unlockScore;
+btn.disabled=true;
+}
+box.appendChild(img);
+box.appendChild(document.createElement("br"));
+box.appendChild(btn);
+store.appendChild(box);
+});
 }
 
-document.getElementById("startBtn").onclick=startGame;
+function openSettings(){
+document.getElementById("settings").style.display="block";
+document.getElementById("menu").style.display="none";
+}
+
+function closePanels(){
+document.getElementById("store").style.display="none";
+document.getElementById("settings").style.display="none";
+document.getElementById("menu").style.display="block";
+}
 </script>
 
 </body>
