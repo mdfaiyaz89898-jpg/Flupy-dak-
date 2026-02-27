@@ -3,83 +3,71 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fluppy Bird</title>
-
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  overflow:hidden;
-  background:skyblue;
-}
-
+body{margin:0;font-family:Arial;background:skyblue;overflow:hidden;}
 .screen{
-  position:absolute;
-  width:100%;
-  height:100%;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
+position:absolute;width:100%;height:100%;
+display:flex;flex-direction:column;
+justify-content:center;align-items:center;
 }
-
-#loginScreen{
-  background:#87ceeb;
-}
-
-#titleScreen{
-  background:#87ceeb;
-  display:none;
-}
-
 button{
-  padding:12px 25px;
-  font-size:18px;
-  margin:10px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
+padding:12px 25px;font-size:18px;
+margin:10px;border:none;border-radius:10px;
+cursor:pointer;
 }
-
 input{
-  padding:10px;
-  font-size:18px;
-  border-radius:8px;
-  border:1px solid black;
-  margin-bottom:20px;
+padding:10px;font-size:18px;
+border-radius:8px;border:1px solid black;
+margin-bottom:20px;
 }
-
-canvas{
-  display:none;
+canvas{display:none;background:skyblue;}
+.storeItem{
+background:white;padding:10px 20px;
+border-radius:10px;margin:8px;
 }
 </style>
 </head>
-
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div id="loginScreen" class="screen">
-  <h2>Enter Username</h2>
-  <input type="text" id="usernameInput" placeholder="Username">
-  <button id="loginBtn">Login</button>
+<h2>Enter Username</h2>
+<input type="text" id="usernameInput">
+<button id="loginBtn">Login</button>
 </div>
 
-<!-- TITLE SCREEN -->
-<div id="titleScreen" class="screen">
-  <h1>Fluppy Bird</h1>
-  <button id="playBtn">Play</button>
+<!-- TITLE -->
+<div id="titleScreen" class="screen" style="display:none;">
+<h1>Fluppy Bird</h1>
+<button id="playBtn">Play</button>
+<button id="storeBtn">Store</button>
+<button id="settingsBtn">Settings</button>
+</div>
+
+<!-- STORE -->
+<div id="storeScreen" class="screen" style="display:none;">
+<h2>Store (Use Score)</h2>
+<div id="storeItems"></div>
+<button onclick="goHome()">Back</button>
+</div>
+
+<!-- SETTINGS -->
+<div id="settingsScreen" class="screen" style="display:none;">
+<h2>Select Difficulty</h2>
+<button onclick="setDifficulty(2)">Easy</button>
+<button onclick="setDifficulty(3)">Medium</button>
+<button onclick="setDifficulty(4)">Hard</button>
+<button onclick="goHome()">Back</button>
 </div>
 
 <canvas id="gameCanvas"></canvas>
 
 <script>
-
-// ================= VARIABLES =================
-
 const loginScreen = document.getElementById("loginScreen");
 const titleScreen = document.getElementById("titleScreen");
-const loginBtn = document.getElementById("loginBtn");
-const usernameInput = document.getElementById("usernameInput");
-const playBtn = document.getElementById("playBtn");
+const storeScreen = document.getElementById("storeScreen");
+const settingsScreen = document.getElementById("settingsScreen");
+const storeItems = document.getElementById("storeItems");
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -87,137 +75,193 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let playerName = localStorage.getItem("fluppyPlayer");
+let playerName = localStorage.getItem("playerName");
+let selectedSkin = localStorage.getItem("selectedSkin") || "bird";
+let unlockedSkins = JSON.parse(localStorage.getItem("unlockedSkins")) || ["bird"];
+let difficulty = parseInt(localStorage.getItem("difficulty")) || 3;
+let highScore = parseInt(localStorage.getItem("highScore")) || 0;
 
-let bird;
-let gravity = 0.4;
-let pipes = [];
-let score = 0;
-let gameOver = false;
+let bird, pipes=[], score=0, gameInterval, pipeInterval, countdownInterval;
+let gravity = 0.5;
+let gameRunning = false;
 
-// ================= LOGIN SYSTEM =================
+const skins = [
+{name:"bird", price:0, color:"yellow"},
+{name:"red", price:5, color:"red"},
+{name:"blue", price:10, color:"blue"},
+{name:"green", price:15, color:"green"}
+];
 
+// LOGIN FLOW
 if(playerName){
-  loginScreen.style.display = "none";
-  titleScreen.style.display = "flex";
+loginScreen.style.display="none";
+titleScreen.style.display="flex";
 }else{
-  loginScreen.style.display = "flex";
-  titleScreen.style.display = "none";
+loginScreen.style.display="flex";
 }
 
-loginBtn.addEventListener("click", function(){
-  let name = usernameInput.value.trim();
+document.getElementById("loginBtn").onclick = function(){
+let name = document.getElementById("usernameInput").value.trim();
+if(name){
+localStorage.setItem("playerName",name);
+playerName=name;
+loginScreen.style.display="none";
+titleScreen.style.display="flex";
+}
+};
 
-  if(name !== ""){
-    localStorage.setItem("fluppyPlayer", name);
-    playerName = name;
+// PLAY
+document.getElementById("playBtn").onclick = function(){
+startCountdown();
+};
 
-    loginScreen.style.display = "none";
-    titleScreen.style.display = "flex";
-  }else{
-    alert("Enter valid username");
-  }
-});
-
-// ================= GAME =================
+function startCountdown(){
+titleScreen.style.display="none";
+canvas.style.display="block";
+let count=3;
+ctx.font="60px Arial";
+countdownInterval=setInterval(()=>{
+ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.fillText(count,canvas.width/2,canvas.height/2);
+count--;
+if(count<0){
+clearInterval(countdownInterval);
+startGame();
+}
+},1000);
+}
 
 function startGame(){
-
-  titleScreen.style.display = "none";
-  canvas.style.display = "block";
-
-  bird = {
-    x:100,
-    y:200,
-    width:50,
-    height:50,
-    velocity:0
-  };
-
-  pipes = [];
-  score = 0;
-  gameOver = false;
-
-  setInterval(createPipe,2000);
-
-  update();
+bird={x:100,y:200,width:40,height:40,velocity:0};
+pipes=[];score=0;gameRunning=true;
+gameInterval=setInterval(updateGame,1000/60);
+pipeInterval=setInterval(createPipe,2000);
 }
 
 function createPipe(){
-  let gap = 180;
-  let topHeight = Math.random() * (canvas.height - gap - 100) + 50;
-
-  pipes.push({
-    x:canvas.width,
-    width:60,
-    top:topHeight,
-    bottom:canvas.height - topHeight - gap
-  });
+let gap=180;
+let top=Math.random()*(canvas.height-gap-100)+50;
+pipes.push({x:canvas.width,width:60,top:top,bottom:canvas.height-top-gap});
 }
 
-function update(){
+function updateGame(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  if(gameOver) return;
+bird.velocity+=gravity;
+bird.y+=bird.velocity;
 
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+let skinObj=skins.find(s=>s.name===selectedSkin);
+ctx.fillStyle=skinObj.color;
+ctx.fillRect(bird.x,bird.y,bird.width,bird.height);
 
-  // bird physics
-  bird.velocity += gravity;
-  bird.y += bird.velocity;
+pipes.forEach(pipe=>{
+pipe.x-=difficulty;
+ctx.fillStyle="green";
+ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
+ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
 
-  // draw bird
-  ctx.fillStyle = "yellow";
-  ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
-
-  // pipes
-  pipes.forEach(pipe => {
-
-    pipe.x -= 3;
-
-    ctx.fillStyle = "green";
-    ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
-    ctx.fillRect(pipe.x, canvas.height - pipe.bottom, pipe.width, pipe.bottom);
-
-    // collision
-    if(
-      bird.x < pipe.x + pipe.width &&
-      bird.x + bird.width > pipe.x &&
-      (bird.y < pipe.top || bird.y + bird.height > canvas.height - pipe.bottom)
-    ){
-      gameOver = true;
-      alert("Game Over\nScore: " + score);
-      location.reload();
-    }
-
-    if(pipe.x + pipe.width === bird.x){
-      score++;
-    }
-
-  });
-
-  // ground collision
-  if(bird.y + bird.height > canvas.height){
-    gameOver = true;
-    alert("Game Over\nScore: " + score);
-    location.reload();
-  }
-
-  ctx.fillStyle = "black";
-  ctx.font = "25px Arial";
-  ctx.fillText("Score: " + score, 20, 40);
-
-  requestAnimationFrame(update);
+if(
+bird.x < pipe.x+pipe.width &&
+bird.x+bird.width > pipe.x &&
+(bird.y < pipe.top || bird.y+bird.height > canvas.height-pipe.bottom)
+){
+endGame();
 }
 
-document.addEventListener("click", function(){
-  if(!gameOver){
-    bird.velocity = -7;
-  }
+if(pipe.x+pipe.width===bird.x){
+score++;
+}
 });
 
-playBtn.addEventListener("click", startGame);
+if(bird.y+bird.height>canvas.height){
+endGame();
+}
+
+ctx.fillStyle="black";
+ctx.font="25px Arial";
+ctx.fillText("Score: "+score,20,40);
+ctx.fillText("High: "+highScore,20,70);
+}
+
+function endGame(){
+clearInterval(gameInterval);
+clearInterval(pipeInterval);
+gameRunning=false;
+
+if(score>highScore){
+highScore=score;
+localStorage.setItem("highScore",highScore);
+}
+
+setTimeout(()=>{
+if(confirm("Game Over\nScore: "+score+"\nRestart?")){
+startCountdown();
+}else{
+goHome();
+}
+},100);
+}
+
+document.addEventListener("click",function(){
+if(gameRunning){
+bird.velocity=-8;
+}
+});
+
+// STORE
+document.getElementById("storeBtn").onclick=function(){
+titleScreen.style.display="none";
+storeScreen.style.display="flex";
+renderStore();
+};
+
+function renderStore(){
+storeItems.innerHTML="";
+skins.forEach(skin=>{
+let div=document.createElement("div");
+div.className="storeItem";
+let status=unlockedSkins.includes(skin.name)?"Select":"Unlock ("+skin.price+")";
+div.innerHTML=skin.name+" - "+status;
+div.onclick=function(){
+if(unlockedSkins.includes(skin.name)){
+selectedSkin=skin.name;
+localStorage.setItem("selectedSkin",skin.name);
+alert("Selected!");
+}else{
+if(highScore>=skin.price){
+unlockedSkins.push(skin.name);
+localStorage.setItem("unlockedSkins",JSON.stringify(unlockedSkins));
+alert("Unlocked!");
+renderStore();
+}else{
+alert("Not enough Score");
+}
+}
+};
+storeItems.appendChild(div);
+});
+}
+
+// SETTINGS
+document.getElementById("settingsBtn").onclick=function(){
+titleScreen.style.display="none";
+settingsScreen.style.display="flex";
+};
+
+function setDifficulty(value){
+difficulty=value;
+localStorage.setItem("difficulty",value);
+alert("Difficulty Set!");
+}
+
+// HOME
+function goHome(){
+canvas.style.display="none";
+storeScreen.style.display="none";
+settingsScreen.style.display="none";
+titleScreen.style.display="flex";
+}
 
 </script>
-
 </body>
 </html>
