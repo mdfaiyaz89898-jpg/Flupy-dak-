@@ -277,14 +277,10 @@ if(Math.floor(score / 5) % 2 === 0){
     ctx.arc(canvas.width - 100, 100, 50, 0, Math.PI * 2);
     ctx.fill();
 
-    /// Cloud draw
-ctx.fillStyle = "white";
-ctx.beginPath();
-ctx.arc(80, canvas.height - 100, 30, Math.PI * 0.5, Math.PI * 1.5); // left puff
-ctx.arc(120, canvas.height - 120, 40, Math.PI, Math.PI * 2);         // top puff
-ctx.arc(160, canvas.height - 100, 30, Math.PI * 1.5, Math.PI * 0.5); // right puff
-ctx.closePath();
-ctx.fill();
+    // Cloud / ghar placeholder
+    ctx.fillStyle = "white";
+    ctx.fillRect(50, canvas.height - 150, 120, 60); // simple cloud rectangle
+} else {
     // Night
     ctx.fillStyle = "#1a1a2e"; // dark night color
     ctx.fillRect(0, 0, canvas.width, canvas.height);
