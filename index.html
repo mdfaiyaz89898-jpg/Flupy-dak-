@@ -188,19 +188,25 @@ function startGame(){
 }
 
 function endGame(){
-    gameOver = true;
-    clearInterval(pipeInterval);
-    restartBtn.style.display="block";
-    homeBtn.style.display="block";
-    pauseBtn.style.display="none";
+    gameOver = true;
+    clearInterval(pipeInterval);
+    restartBtn.style.display="block";
+    homeBtn.style.display="block";
+    pauseBtn.style.display="none";
 
-    // Unlock skins exactly at required score
-    skins.forEach(s=>{
-        if(score===s.unlockScore) skinData[s.name].unlocked=true;
-    });
-    localStorage.setItem("fluppySkins",JSON.stringify(skinData));
+    if(score > highScore){
+        highScore = score;
+        localStorage.setItem("fluppyHighScore", highScore);
+    }
 
-    if(score>highScore){ highScore=score; localStorage.setItem("fluppyHighScore",highScore);}
+    // ✅ Unlock skins only after game ends
+    skins.forEach(s=>{
+        if(score >= s.unlockScore){
+            skinData[s.name].unlocked = true;
+        }
+    });
+
+    localStorage.setItem("fluppySkins", JSON.stringify(skinData));
 }
 
 function update(){
