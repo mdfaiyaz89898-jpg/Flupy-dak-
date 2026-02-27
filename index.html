@@ -269,48 +269,64 @@ document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
 
 // Render Skins
 function renderSkins(){
-    skinRow.innerHTML="";
-    upperSkinDisplay.innerHTML="";
-    const upperImg = new Image();
-    upperImg.src = selectedSkin.file;
-    upperImg.style.width="150px"; upperImg.style.height="150px";
-    upperSkinDisplay.appendChild(upperImg);
+    skinRow.innerHTML="";
+    upperSkinDisplay.innerHTML="";
+    const upperImg = new Image();
+    upperImg.src = selectedSkin.file;
+    upperImg.style.width="150px";
+    upperImg.style.height="150px";
+    upperSkinDisplay.appendChild(upperImg);
 
-    skins.forEach(s=>{
-        const box = document.createElement("div");
-        box.className="skinBox";
-        const img = document.createElement("img");
-        img.src = s.file;
-        box.appendChild(img);
-        const name = document.createElement("div");
-        name.textContent=s.name;
-        box.appendChild(name);
+    skins.forEach(s=>{
+        const box = document.createElement("div");
+        box.className="skinBox";
+        box.style.width="140px";      // width thoda bada kiya
+        box.style.margin="10px";      // gap thoda adjust
+        box.style.padding="8px";      // padding thoda bada
 
-        const price = document.createElement("div");
-        price.textContent = s.unlockScore+" score";
-        box.appendChild(price);
+        const img = document.createElement("img");
+        img.src = s.file;
+        img.style.width="120px";      // image ka size thoda bada
+        img.style.height="120px";     // image height bhi
+        img.style.objectFit="contain"; // pura image dikhe, crop na ho
+        box.appendChild(img);
 
-        const overlay = document.createElement("div");
-        overlay.className="lockOverlay";
-        if(skinData[s.name].unlocked){ overlay.style.display="none"; } else { overlay.textContent="🔒"; }
-        box.appendChild(overlay);
+        const name = document.createElement("div");
+        name.textContent = s.name;
+        name.style.marginTop="6px";
+        box.appendChild(name);
 
-        box.addEventListener("click",()=>{
-            if(skinData[s.name].unlocked){
-                selectedSkin=s;
-                confirmSkinBtn.className="confirmBtn unlocked";
-            } else {
-                confirmSkinBtn.className="confirmBtn locked";
-            }
-            renderSkins();
-        });
+        const price = document.createElement("div");
+        price.textContent = s.unlockScore+" score";
+        box.appendChild(price);
 
-        skinRow.appendChild(box);
-    });
+        const overlay = document.createElement("div");
+        overlay.className="lockOverlay";
+        overlay.style.fontSize="28px"; // overlay font thoda chota
+        if(skinData[s.name].unlocked){ overlay.style.display="none"; } 
+        else { overlay.textContent="🔒"; }
+        box.appendChild(overlay);
 
-    if(skinData[selectedSkin.name].unlocked){ confirmSkinBtn.className="confirmBtn unlocked"; } 
-    else { confirmSkinBtn.className="confirmBtn locked"; }
-}
+        box.addEventListener("click",()=>{
+            if(skinData[s.name].unlocked){
+                selectedSkin = s;
+                confirmSkinBtn.className="confirmBtn unlocked";
+            } else {
+                confirmSkinBtn.className="confirmBtn locked";
+            }
+            renderSkins();
+        });
+
+        skinRow.appendChild(box);
+    });
+
+    // confirm button unlock/lock
+    if(skinData[selectedSkin.name].unlocked){ 
+        confirmSkinBtn.className="confirmBtn unlocked"; 
+    } else { 
+        confirmSkinBtn.className="confirmBtn locked"; 
+    }
+  }
 
 confirmSkinBtn.addEventListener("click",()=>{
     if(confirmSkinBtn.classList.contains("unlocked")){
