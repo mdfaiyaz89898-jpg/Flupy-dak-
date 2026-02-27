@@ -137,7 +137,7 @@ function initGame(){
 
 // Pipe
 function createPipe(){
-    const gap = 220;
+    const gap = 300;
     const topHeight = Math.random()*(canvas.height-gap-100)+50;
     const pipeX = canvas.width;
     pipes.push({x:pipeX, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
