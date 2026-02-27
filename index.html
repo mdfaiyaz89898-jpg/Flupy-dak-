@@ -188,27 +188,12 @@ function startGame(){
 }
 
 function endGame(){
-    gameOver = true;
-    clearInterval(pipeInterval);
-    restartBtn.style.display="block";
-    homeBtn.style.display="block";
-    pauseBtn.style.display="none";
-
-    // ✅ Unlock skins based on final score
-    skins.forEach(s=>{
-        if(score >= s.unlockScore){
-            skinData[s.name].unlocked = true;
-        }
-    });
-
-    // ✅ Save skins permanently
-    localStorage.setItem("fluppySkins", JSON.stringify(skinData));
-
-    // ✅ Update High Score
-    if(score > highScore){
-        highScore = score;
-        localStorage.setItem("fluppyHighScore", highScore);
-    }
+    gameOver = true;
+    clearInterval(pipeInterval);
+    restartBtn.style.display="block";
+    homeBtn.style.display="block";
+    pauseBtn.style.display="none";
+    if(score>highScore){ highScore=score; localStorage.setItem("fluppyHighScore",highScore);}
 }
 
 // Update
@@ -334,13 +319,9 @@ function renderSkins(){
 confirmSkinBtn.addEventListener("click",()=>{
     if(confirmSkinBtn.classList.contains("unlocked")){
         localStorage.setItem("selectedSkin",selectedSkin.name);
-        confirmSkinBtn.addEventListener("click",()=>{
-    if(confirmSkinBtn.classList.contains("unlocked")){
-        localStorage.setItem("selectedSkin",selectedSkin.name);
-        storeScreen.style.display="none";
-        titleScreen.style.display="flex";
-    }
-});[s.name].unlocked=true;
+        // Unlock skins if score >= requirement
+        skins.forEach(s=>{
+            if(score>=s.unlockScore) skinData[s.name].unlocked=true;
         });
         localStorage.setItem("fluppySkins",JSON.stringify(skinData));
         storeScreen.style.display="none";
