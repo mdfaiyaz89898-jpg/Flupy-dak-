@@ -28,8 +28,8 @@ canvas{ display:block; }
 #storeScreen h2{ font-size:32px; margin-bottom:20px; color:#333;}
 #storeScreen .backStoreBtn{ position:absolute; top:10px; left:10px; font-size:30px; background:transparent; color:orange; border:none; cursor:pointer; }
 .skinRow{ display:flex; justify-content:center; margin:15px 0; flex-wrap:wrap; }
-.skinBox{ width:140px; margin:10px; text-align:center; cursor:pointer; border-radius:10px; padding:6px; position:relative; }
-.skinBox img{ width:120px; height:120px; border-radius:10px; }
+.skinBox{ width:120px; margin:0 10px; text-align:center; cursor:pointer; border-radius:10px; padding:6px; position:relative; }
+.skinBox img{ width:100px; height:100px; border-radius:10px; }
 .lockOverlay{ position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:30px; }
 .confirmBtn{ padding:6px 20px; font-size:16px; border:none; border-radius:6px; cursor:pointer; margin-top:5px; font-weight:bold; }
 .confirmBtn.locked{ background:grey; color:white; cursor:not-allowed; }
@@ -112,5 +112,210 @@ let skins = [
   {name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png", unlockScore:0},
   {name:"Mango Bird", file:"Picsart_26-02-27_01-28-33-302.png", unlockScore:10},
   {name:"Happy Perrot", file:"Picsart_26-02-27_10-16-34-761.png", unlockScore:20},
-  {name:"Angry Bird", file:"Picsart_26-02-27_10-15-45-688.png", unlockScore:30},
-  {
+  {name:"Angry Bird", file:"Picsart_26-02-27_10-15-45-688.png", unlockScore:30}
+];
+
+let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
+skins.forEach(s=>{
+    if(!skinData[s.name]) skinData[s.name]={unlocked: s.unlockScore===0};
+});
+let selectedSkinName = localStorage.getItem("selectedSkin") || "Bird";
+let selectedSkin = skins.find(s=>s.name===selectedSkinName);
+
+function initGame(){
+    bird = {x:100, y:200, width:60, height:60, velocity:0, rotation:0};
+    gravity = 0.35;
+    pipes = [];
+    score = 0;
+    gameOver = false;
+    paused = false;
+    pipeSpeed = difficultySpeeds[difficulty];
+    document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
+}
+
+function createPipe(){
+    let gap;
+    if(difficulty==="Very Easy") gap=280;
+    else if(difficulty==="Normal") gap=200;
+    else gap=150;
+    const topHeight = Math.random()*(canvas.height-gap-100)+50;
+    const pipeX = canvas.width;
+    pipes.push({x:pipeX, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
+}
+
+let pipeInterval;
+function startGame(){
+    titleScreen.style.display="none";
+    settingsScreen.style.display="none";
+    storeScreen.style.display="none";
+    pauseBtn.style.display="none";
+    restartBtn.style.display="none";
+    homeBtn.style.display="none";
+
+    gameStarted = false;
+    initGame();
+
+    let countdown = ["3","2","1","Go!"];
+    let countIndex = 0;
+    const overlay = document.createElement("div");
+    overlay.style.position="absolute";
+    overlay.style.top="0";
+    overlay.style.left="0";
+    overlay.style.width="100%";
+    overlay.style.height="100%";
+    overlay.style.display="flex";
+    overlay.style.alignItems="center";
+    overlay.style.justifyContent="center";
+    overlay.style.fontSize = "120px";
+    overlay.style.color="white";
+    overlay.style.textShadow="4px 4px 0 black";
+    overlay.style.background="rgba(0,0,0,0.3)";
+    overlay.style.zIndex="1000";
+    document.body.appendChild(overlay);
+
+    const interval = setInterval(()=>{
+        overlay.textContent = countdown[countIndex];
+        countIndex++;
+        if(countIndex>=countdown.length){
+            clearInterval(interval);
+            document.body.removeChild(overlay);
+            pauseBtn.style.display="block";
+            gameStarted=true;
+            pipeInterval = setInterval(createPipe,2000);
+            update();
+        }
+    },1000);
+}
+
+function endGame(){
+    gameOver = true;
+    clearInterval(pipeInterval);
+    restartBtn.style.display="block";
+    homeBtn.style.display="block";
+    pauseBtn.style.display="none";
+
+    // Unlock skins exactly at required score
+    skins.forEach(s=>{
+        if(score===s.unlockScore) skinData[s.name].unlocked=true;
+    });
+    localStorage.setItem("fluppySkins",JSON.stringify(skinData));
+
+    if(score>highScore){ highScore=score; localStorage.setItem("fluppyHighScore",highScore);}
+}
+
+function update(){
+    if(!gameStarted || gameOver || paused) return;
+
+    bird.velocity += gravity;
+    bird.y += bird.velocity;
+    bird.rotation = Math.min(bird.velocity*5,25);
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    const birdImgObj = new Image();
+    birdImgObj.src = selectedSkin.file;
+    ctx.save();
+    ctx.translate(bird.x+bird.width/2,bird.y+bird.height/2);
+    ctx.rotate(bird.rotation*Math.PI/180);
+    ctx.drawImage(birdImgObj,-bird.width/2,-bird.height/2,bird.width,bird.height);
+    ctx.restore();
+
+    pipes.forEach(pipe=>{
+        pipe.x -= pipeSpeed;
+        ctx.fillStyle="#00c853";
+        ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
+        ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
+
+        if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top || bird.y+bird.height>canvas.height-pipe.bottom)){
+            endGame();
+        }
+
+        if(!pipe.passed && pipe.x+pipe.width<bird.x){ score++; pipe.passed=true;}
+    });
+
+    if(bird.y+bird.height>canvas.height || bird.y<0) endGame();
+
+    ctx.fillStyle="black"; ctx.font="25px Arial";
+    ctx.fillText("Score: "+score,20,40);
+    ctx.fillText("High Score: "+highScore,20,70);
+
+    requestAnimationFrame(update);
+}
+
+function jump(){ if(gameStarted && !gameOver) bird.velocity=-5; }
+document.addEventListener("click", jump);
+document.addEventListener("touchstart", e=>{ e.preventDefault(); jump(); });
+
+playBtn.addEventListener("click",()=>{ startGame(); });
+settingsBtnMain.addEventListener("click",()=>{ titleScreen.style.display="none"; settingsScreen.style.display="flex"; });
+backBtn.addEventListener("click",()=>{ settingsScreen.style.display="none"; titleScreen.style.display="flex"; });
+storeBtn.addEventListener("click",()=>{ storeScreen.style.display="flex"; renderSkins(); titleScreen.style.display="none"; });
+backStoreBtn.addEventListener("click",()=>{ storeScreen.style.display="none"; titleScreen.style.display="flex"; });
+
+document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
+    radio.addEventListener("change",()=>{
+        difficulty = radio.value;
+        pipeSpeed = difficultySpeeds[difficulty];
+        localStorage.setItem("fluppyDifficulty",difficulty);
+    });
+});
+
+// Render Skins
+function renderSkins(){
+    skinRow.innerHTML="";
+    upperSkinDisplay.innerHTML="";
+    const upperImg = new Image();
+    upperImg.src = selectedSkin.file;
+    upperImg.style.width="150px"; upperImg.style.height="150px";
+    upperSkinDisplay.appendChild(upperImg);
+
+    skins.forEach(s=>{
+        const box = document.createElement("div");
+        box.className="skinBox";
+        const img = document.createElement("img");
+        img.src = s.file;
+        box.appendChild(img);
+        const name = document.createElement("div");
+        name.textContent=s.name;
+        box.appendChild(name);
+
+        const price = document.createElement("div");
+        price.textContent = s.unlockScore+" score";
+        box.appendChild(price);
+
+        const overlay = document.createElement("div");
+        overlay.className="lockOverlay";
+        if(skinData[s.name].unlocked){ overlay.style.display="none"; } else { overlay.textContent="🔒"; }
+        box.appendChild(overlay);
+
+        box.addEventListener("click",()=>{
+            if(skinData[s.name].unlocked){
+                selectedSkin=s;
+                confirmSkinBtn.className="confirmBtn unlocked";
+            } else {
+                confirmSkinBtn.className="confirmBtn locked";
+            }
+            renderSkins();
+        });
+
+        skinRow.appendChild(box);
+    });
+
+    if(skinData[selectedSkin.name].unlocked){ confirmSkinBtn.className="confirmBtn unlocked"; } 
+    else { confirmSkinBtn.className="confirmBtn locked"; }
+}
+
+confirmSkinBtn.addEventListener("click",()=>{
+    if(confirmSkinBtn.classList.contains("unlocked")){
+        localStorage.setItem("selectedSkin",selectedSkin.name);
+        storeScreen.style.display="none";
+        titleScreen.style.display="flex";
+    }
+});
+
+pauseBtn.addEventListener("click",()=>{ paused=!paused; if(!paused) update(); });
+restartBtn.addEventListener("click",()=>{ startGame(); });
+homeBtn.addEventListener("click",()=>{ titleScreen.style.display="flex"; restartBtn.style.display="none"; homeBtn.style.display="none"; pauseBtn.style.display="none"; });
+</script>
+</body>
+</html>
