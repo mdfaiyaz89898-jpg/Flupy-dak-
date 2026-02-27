@@ -14,7 +14,7 @@ canvas{ display:block; }
 
 /* Starting Screen */
 #titleScreen, #settingsScreen, #storeScreen{ position:absolute; width:100%; height:100%; top:0; left:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-#titleScreen{ background:skyblue; }
+#titleScreen{ background:skyblue; display:none; }
 #titleScreen h1{ font-size:60px; color:yellow; text-shadow:4px 4px 0 black,8px 8px 0 orange; font-family:'Comic Sans MS', cursive; animation:bounce 1s infinite alternate; margin-bottom:30px;}
 @keyframes bounce{0%{transform:translateY(0px);}100%{transform:translateY(-10px);}}
 #titleScreen button, #settingsScreen button, #storeScreen button{ padding:12px 30px; font-size:20px; border:none; border-radius:12px; margin:8px; cursor:pointer; transition:0.2s; }
@@ -62,7 +62,7 @@ canvas{ display:block; }
 </div>
 
 <!-- Starting Screen -->
-<div id="titleScreen" style="display:none">
+<div id="titleScreen">
     <h1>Fluppy Bird</h1>
     <button id="playBtn">Play</button>
     <button id="settingsBtnMain">Settings</button>
@@ -97,11 +97,13 @@ canvas{ display:block; }
 <div id="madeBy">Made by TrollHunter</div>
 
 <script>
+// Canvas setup
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+// DOM elements
 const loginOverlay = document.getElementById("loginOverlay");
 const usernameInput = document.getElementById("usernameInput");
 const loginBtn = document.getElementById("loginBtn");
@@ -122,27 +124,29 @@ const confirmSkinBtn = document.getElementById("confirmSkinBtn");
 const upperSkinDisplay = document.getElementById("upperSkinDisplay");
 const skinRow = document.getElementById("skinRow");
 
+// Game variables
 let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty;
 highScore = localStorage.getItem("fluppyHighScore") || 0;
 difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
 pipeSpeed = 2;
-const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
+let pipeInterval;
 
-// Username + Leaderboard
+// Username & Leaderboard
 let username = localStorage.getItem("fluppyUsername") || "";
 let leaderboard = JSON.parse(localStorage.getItem("fluppyLeaderboard")) || [];
 
 // Skins
-let skins = [
+let skins = JSON.parse(localStorage.getItem("fluppySkins")) || [
   {name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png", price:0, unlock:true},
   {name:"Mango Bird", file:"Picsart_26-02-27_01-28-33-302.png", price:10, unlock:false},
   {name:"Happy Parrot", file:"Picsart_26-02-27_10-16-34-761.png", price:20, unlock:false},
   {name:"Angry Bird", file:"Picsart_26-02-27_10-15-45-688.png", price:30, unlock:false}
 ];
-let selectedSkin = skins[0]; // default
-let skinConfirmed = false;
 
-// Initialize Game
+let selectedSkin = skins[0];
+
+// --- Functions ---
+// Initialize game
 function initGame(){
     bird = {x:100, y:200, width:60, height:60, velocity:0, rotation:0};
     gravity = 0.35;
@@ -150,7 +154,7 @@ function initGame(){
     score = 0;
     gameOver = false;
     paused = false;
-    pipeSpeed = difficultySpeeds[difficulty];
+    pipeSpeed = difficulty==="Very Easy"?2:difficulty==="Normal"?4:6;
     document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
 }
 
@@ -163,7 +167,6 @@ function createPipe(){
 }
 
 // Start Game + Countdown
-let pipeInterval;
 function startGame(){
     titleScreen.style.display="none";
     settingsScreen.style.display="none";
@@ -188,9 +191,6 @@ function startGame(){
     overlay.style.zIndex="1000";
     document.body.appendChild(overlay);
 
-    const birdImgObj = new Image();
-    birdImgObj.src = selectedSkin.file;
-
     const interval = setInterval(()=>{
         overlay.textContent = countdown[countIndex];
         countIndex++;
@@ -213,21 +213,16 @@ function endGame(){
     homeBtn.style.display="block";
     pauseBtn.style.display="none";
 
-    // Save High Score
     if(score>highScore){
         highScore = score;
         localStorage.setItem("fluppyHighScore",highScore);
     }
 
-    // Unlock skins by score
-    skins.forEach(s=>{
-        if(score >= s.price) s.unlock = true;
-    });
-
-    // Save unlocked skins
+    // Unlock skins
+    skins.forEach(s=>{ if(score>=s.price) s.unlock=true; });
     localStorage.setItem("fluppySkins",JSON.stringify(skins));
 
-    // Save leaderboard
+    // Update leaderboard
     leaderboard.push({name:username, score:score});
     leaderboard.sort((a,b)=>b.score-a.score);
     leaderboard = leaderboard.slice(0,10);
@@ -244,11 +239,10 @@ function update(){
 
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // Day/Night
+    // Background
     const cycle = Math.floor(score/5)%2;
     if(cycle===0){
         canvas.style.background="skyblue";
-        // clouds
         ctx.fillStyle="white";
         ctx.beginPath();
         ctx.arc(200,100,30,0,Math.PI*2);
@@ -257,14 +251,11 @@ function update(){
         ctx.fill();
     } else {
         canvas.style.background="#1a1a2e";
-        // stars
         ctx.fillStyle="white";
-        for(let i=0;i<50;i++){
-            ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height,2,2);
-        }
+        for(let i=0;i<50;i++) ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height,2,2);
     }
 
-    // Draw Bird
+    // Bird
     const birdImg = new Image();
     birdImg.src = selectedSkin.file;
     ctx.save();
@@ -273,17 +264,14 @@ function update(){
     ctx.drawImage(birdImg,-bird.width/2,-bird.height/2,bird.width,bird.height);
     ctx.restore();
 
-    // Draw pipes
+    // Pipes
     pipes.forEach(pipe=>{
         pipe.x -= pipeSpeed;
         ctx.fillStyle="#00c853";
         ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
         ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
 
-        if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top || bird.y+bird.height>canvas.height-pipe.bottom)){
-            endGame();
-        }
-
+        if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top || bird.y+bird.height>canvas.height-pipe.bottom)) endGame();
         if(!pipe.passed && pipe.x+pipe.width<bird.x){ score++; pipe.passed=true;}
     });
 
@@ -302,6 +290,7 @@ document.addEventListener("click", jump);
 document.addEventListener("touchstart", e=>{ e.preventDefault(); jump(); });
 
 // --- Event Listeners ---
+// Login
 loginBtn.onclick = ()=>{
     if(usernameInput.value.trim()!==""){
         username = usernameInput.value.trim();
@@ -311,10 +300,11 @@ loginBtn.onclick = ()=>{
     }
 }
 
+// Buttons
 playBtn.addEventListener("click",()=>{ startGame(); });
 settingsBtnMain.addEventListener("click",()=>{ titleScreen.style.display="none"; settingsScreen.style.display="flex"; });
 backBtn.addEventListener("click",()=>{ settingsScreen.style.display="none"; titleScreen.style.display="flex"; });
-storeBtn.addEventListener("click",renderSkins);
+storeBtn.addEventListener("click", renderSkins);
 backStoreBtn.addEventListener("click",()=>{ storeScreen.style.display="none"; titleScreen.style.display="flex"; });
 pauseBtn.addEventListener("click",()=>{ paused=!paused; if(!paused) update(); });
 restartBtn.addEventListener("click",()=>{ startGame(); });
@@ -324,12 +314,12 @@ homeBtn.addEventListener("click",()=>{ titleScreen.style.display="flex"; restart
 document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
     radio.addEventListener("change",()=>{
         difficulty = radio.value;
-        pipeSpeed = difficultySpeeds[difficulty];
+        pipeSpeed = difficulty==="Very Easy"?2:difficulty==="Normal"?4:6;
         localStorage.setItem("fluppyDifficulty",difficulty);
     });
 });
 
-// Leaderboard Button
+// Leaderboard
 leaderboardBtn.addEventListener("click", ()=>{
     const overlay = document.createElement("div");
     overlay.style.position="absolute"; overlay.style.top="0"; overlay.style.left="0";
@@ -339,8 +329,7 @@ leaderboardBtn.addEventListener("click", ()=>{
     overlay.style.alignItems="center"; overlay.style.justifyContent="center";
     overlay.style.fontSize="24px"; overlay.style.padding="20px"; overlay.style.zIndex="1000";
 
-    const title = document.createElement("h2");
-    title.textContent="Leaderboard"; overlay.appendChild(title);
+    const title = document.createElement("h2"); title.textContent="Leaderboard"; overlay.appendChild(title);
 
     leaderboard.forEach((entry,i)=>{
         const div = document.createElement("div");
@@ -349,6 +338,4 @@ leaderboardBtn.addEventListener("click", ()=>{
     });
 
     const closeBtn = document.createElement("button");
-    closeBtn.textContent="Close"; closeBtn.style.marginTop="20px"; closeBtn.style.padding="8px 15px";
-    closeBtn.onclick=()=>{ document.body.removeChild(overlay); }
-    overlay.appendChild
+    closeBtn.textContent="Close"; closeBtn.style.marginTop="20px"; closeBtn.style.padding="8px 15px
