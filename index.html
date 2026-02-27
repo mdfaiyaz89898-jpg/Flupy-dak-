@@ -117,8 +117,11 @@ let skins = [
 
 let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
 skins.forEach(s=>{
-    if(s.unlockScore===0) skinData[s.name]={unlocked:true};
-    else if(!skinData[s.name]) skinData[s.name]={unlocked:false};
+    if(!skinData[s.name]){
+        skinData[s.name] = {
+            unlocked: s.unlockScore === 0
+        };
+    }
 });
 let selectedSkinName = localStorage.getItem("selectedSkin") || "Bird";
 let selectedSkin = skins.find(s=>s.name===selectedSkinName);
@@ -188,13 +191,28 @@ function startGame(){
 }
 
 function endGame(){
-    gameOver = true;
-    clearInterval(pipeInterval);
-    restartBtn.style.display="block";
-    homeBtn.style.display="block";
-    pauseBtn.style.display="none";
-    if(score>highScore){ highScore=score; localStorage.setItem("fluppyHighScore",highScore);}
-}
+    gameOver = true;
+    clearInterval(pipeInterval);
+    restartBtn.style.display="block";
+    homeBtn.style.display="block";
+    pauseBtn.style.display="none";
+
+    // ✅ Unlock skins based on final score
+    skins.forEach(s=>{
+        if(score >= s.unlockScore){
+            skinData[s.name].unlocked = true;
+        }
+    }
+
+    // ✅ Save skins permanently
+    localStorage.setItem("fluppySkins", JSON.stringify(skinData));
+
+    // ✅ Update High Score
+    if(score > highScore){
+        highScore = score;
+        localStorage.setItem("fluppyHighScore", highScore);
+    }
+  }
 
 // Update
 function update(){
@@ -319,9 +337,7 @@ function renderSkins(){
 confirmSkinBtn.addEventListener("click",()=>{
     if(confirmSkinBtn.classList.contains("unlocked")){
         localStorage.setItem("selectedSkin",selectedSkin.name);
-        // Unlock skins if score >= requirement
-        skins.forEach(s=>{
-            if(score>=s.unlockScore) skinData[s.name].unlocked=true;
+        [s.name].unlocked=true;
         });
         localStorage.setItem("fluppySkins",JSON.stringify(skinData));
         storeScreen.style.display="none";
