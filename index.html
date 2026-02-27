@@ -58,9 +58,9 @@ canvas{ display:block; }
     <button class="backBtn">&#8592;</button>
     <h2>Select Difficulty</h2>
     <div id="difficultyOptions">
-        <label><input type="radio" name="difficulty" value="Very Easy"> Very Easy</label>
-        <label><input type="radio" name="difficulty" value="Normal"> Normal</label>
-        <label><input type="radio" name="difficulty" value="Hard"> Hard</label>
+        <label class="veryEasy"><input type="radio" name="difficulty" value="Very Easy"> Very Easy</label>
+        <label class="normal"><input type="radio" name="difficulty" value="Normal"> Normal</label>
+        <label class="hard"><input type="radio" name="difficulty" value="Hard"> Hard</label>
     </div>
 </div>
 
@@ -100,10 +100,18 @@ const upperSkinDisplay = document.getElementById("upperSkinDisplay");
 const skinRow = document.getElementById("skinRow");
 
 let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty;
-highScore = localStorage.getItem("fluppyHighScore") || 0;
+highScore = parseInt(localStorage.getItem("fluppyHighScore")) || 0;
 difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
 pipeSpeed = 2;
 const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
+
+// Safe load localStorage (auto-fix if corrupt)
+let skinData;
+try {
+    skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
+} catch(e){
+    skinData = {};
+}
 
 // Skins
 let skins = [
@@ -113,7 +121,7 @@ let skins = [
   {name:"Angry Bird", file:"Picsart_26-02-27_10-15-45-688.png", unlockScore:30}
 ];
 
-let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
+// Initialize skinData
 skins.forEach(s=>{
     if(s.unlockScore===0) skinData[s.name]={unlocked:true};
     else if(!skinData[s.name]) skinData[s.name]={unlocked:false};
@@ -129,6 +137,7 @@ skins.forEach(s=>{
     loadedImages[s.name] = img;
 });
 
+// Init
 function initGame(){
     bird = {x:100, y:200, width:60, height:60, velocity:0, rotation:0};
     gravity = 0.35;
@@ -140,10 +149,12 @@ function initGame(){
     document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
 }
 
+// Pipe
 function createPipe(){
     const gap = 220;
     const topHeight = Math.random()*(canvas.height-gap-100)+50;
-    pipes.push({x:canvas.width, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
+    const pipeX = canvas.width;
+    pipes.push({x:pipeX, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
 }
 
 let pipeInterval;
@@ -199,6 +210,7 @@ function endGame(){
     if(score>highScore){ highScore=score; localStorage.setItem("fluppyHighScore",highScore);}
 }
 
+// Update
 function update(){
     if(!gameStarted || gameOver || paused) return;
 
@@ -268,30 +280,23 @@ document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
     });
 });
 
-// ✅ Fixed renderSkins
+// Render store
 function renderSkins(){
     skinRow.innerHTML="";
     upperSkinDisplay.innerHTML="";
-
-    // Upper selected skin preview
-    const upperImg = new Image();
-    upperImg.src = loadedImages[selectedSkin.name].src;
-    upperImg.style.width="150px";
-    upperImg.style.height="150px";
+    const upperImg = loadedImages[selectedSkin.name].cloneNode();
+    upperImg.style.width="150px"; upperImg.style.height="150px";
     upperSkinDisplay.appendChild(upperImg);
 
     skins.forEach(s=>{
         const box = document.createElement("div");
         box.className="skinBox";
-
-        const img = new Image();
-        img.src = loadedImages[s.name].src;
-        img.style.width="100px";
-        img.style.height="100px";
+        const img = loadedImages[s.name].cloneNode();
+        img.style.width="100px"; img.style.height="100px";
         box.appendChild(img);
 
         const name = document.createElement("div");
-        name.textContent = s.name;
+        name.textContent=s.name;
         box.appendChild(name);
 
         const price = document.createElement("div");
@@ -300,13 +305,12 @@ function renderSkins(){
 
         const overlay = document.createElement("div");
         overlay.className="lockOverlay";
-        overlay.textContent = skinData[s.name].unlocked ? "" : "🔒";
-        overlay.style.display = skinData[s.name].unlocked ? "none" : "flex";
+        if(skinData[s.name].unlocked){ overlay.style.display="none"; } else { overlay.textContent="🔒"; }
         box.appendChild(overlay);
 
         box.addEventListener("click",()=>{
             if(skinData[s.name].unlocked){
-                selectedSkin = s;
+                selectedSkin=s;
                 confirmSkinBtn.className="confirmBtn unlocked";
             } else {
                 confirmSkinBtn.className="confirmBtn locked";
@@ -317,7 +321,8 @@ function renderSkins(){
         skinRow.appendChild(box);
     });
 
-    confirmSkinBtn.className = skinData[selectedSkin.name].unlocked ? "confirmBtn unlocked" : "confirmBtn locked";
+    if(skinData[selectedSkin.name].unlocked){ confirmSkinBtn.className="confirmBtn unlocked"; } 
+    else { confirmSkinBtn.className="confirmBtn locked"; }
 }
 
 confirmSkinBtn.addEventListener("click",()=>{
@@ -337,4 +342,4 @@ restartBtn.addEventListener("click",()=>{ startGame(); });
 homeBtn.addEventListener("click",()=>{ titleScreen.style.display="flex"; restartBtn.style.display="none"; homeBtn.style.display="none"; pauseBtn.style.display="none"; });
 </script>
 </body>
-    </html>
+</html>
