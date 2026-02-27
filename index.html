@@ -315,57 +315,68 @@ document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
 });
 
 // Render Skins
-function renderSkins(){
-    skinRow.innerHTML="";
-    upperSkinDisplay.innerHTML="";
-    const upperImg = new Image();
-    upperImg.src = selectedSkin.file;
-    upperImg.style.width="150px";
-    upperImg.style.height="150px";
-    upperSkinDisplay.appendChild(upperImg);
+function update(){
+    if(!gameStarted || gameOver || paused) return;
 
-    skins.forEach(s=>{
-        const box = document.createElement("div");
-        box.className="skinBox";
-        box.style.width="140px";      // width thoda bada kiya
-        box.style.margin="10px";      // gap thoda adjust
-        box.style.padding="8px";      // padding thoda bada
+    // Bird physics
+    bird.velocity += gravity;
+    bird.y += bird.velocity;
+    bird.rotation = Math.min(bird.velocity * 5, 25);
 
-        const img = document.createElement("img");
-        img.src = s.file;
-        img.style.width="120px";      // image ka size thoda bada
-        img.style.height="120px";     // image height bhi
-        img.style.objectFit="contain"; // pura image dikhe, crop na ho
-        box.appendChild(img);
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const name = document.createElement("div");
-        name.textContent = s.name;
-        name.style.marginTop="6px";
-        box.appendChild(name);
+    // Background
+    ctx.fillStyle = "skyblue";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        const price = document.createElement("div");
-        price.textContent = s.unlockScore+" score";
-        box.appendChild(price);
+    // Draw pipes with skin-based color
+    pipes.forEach(pipe => {
+        pipe.x -= pipeSpeed;
 
-        const overlay = document.createElement("div");
-        overlay.className="lockOverlay";
-        overlay.style.fontSize="28px"; // overlay font thoda chota
-        if(skinData[s.name].unlocked){ overlay.style.display="none"; } 
-        else { overlay.textContent="🔒"; }
-        box.appendChild(overlay);
+        // Pipe color based on selected skin
+        ctx.fillStyle = selectedSkin.pipeColor;
+        ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
+        ctx.fillRect(pipe.x, canvas.height - pipe.bottom, pipe.width, pipe.bottom);
 
-        box.addEventListener("click",()=>{
-            if(skinData[s.name].unlocked){
-                selectedSkin = s;
-                confirmSkinBtn.className="confirmBtn unlocked";
-            } else {
-                confirmSkinBtn.className="confirmBtn locked";
-            }
-            renderSkins();
-        });
+        // Collision detection
+        if (
+            bird.x < pipe.x + pipe.width &&
+            bird.x + bird.width > pipe.x &&
+            (bird.y < pipe.top || bird.y + bird.height > canvas.height - pipe.bottom)
+        ) {
+            endGame();
+        }
 
-        skinRow.appendChild(box);
+        // Score
+        if (!pipe.passed && pipe.x + pipe.width < bird.x) {
+            score++;
+            pipe.passed = true;
+        }
     });
+
+    // Draw ground with skin-based color
+    const groundHeight = 50; // example height
+    ctx.fillStyle = selectedSkin.groundColor;
+    ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
+
+    // Draw bird
+    const birdImgObj = new Image();
+    birdImgObj.src = selectedSkin.file;
+    ctx.save();
+    ctx.translate(bird.x + bird.width / 2, bird.y + bird.height / 2);
+    ctx.rotate(bird.rotation * Math.PI / 180);
+    ctx.drawImage(birdImgObj, -bird.width / 2, -bird.height / 2, bird.width, bird.height);
+    ctx.restore();
+
+    // UI
+    ctx.fillStyle = "black";
+    ctx.font = "25px Arial";
+    ctx.fillText("Score: " + score, 20, 40);
+    ctx.fillText("High Score: " + highScore, 20, 70);
+
+    requestAnimationFrame(update);
+}
 
     // confirm button unlock/lock
     if(skinData[selectedSkin.name].unlocked){ 
