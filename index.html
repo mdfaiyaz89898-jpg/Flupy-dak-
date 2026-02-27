@@ -144,7 +144,52 @@ const homeBtn = document.getElementById("homeBtn");
 const confirmSkinBtn = document.getElementById("confirmSkinBtn");
 const upperSkinDisplay = document.getElementById("upperSkinDisplay");
 const skinRow = document.getElementById("skinRow");
+// Button event listeners
+playBtn.addEventListener("click", () => { startGame(); });
 
+settingsBtnMain.addEventListener("click", () => {
+    titleScreen.style.display = "none";
+    settingsScreen.style.display = "flex";
+});
+
+storeBtn.addEventListener("click", () => {
+    storeScreen.style.display = "flex";
+    renderSkins();
+    titleScreen.style.display = "none";
+});
+
+backBtn.addEventListener("click", () => {
+    settingsScreen.style.display = "none";
+    titleScreen.style.display = "flex";
+});
+
+backStoreBtn.addEventListener("click", () => {
+    storeScreen.style.display = "none";
+    titleScreen.style.display = "flex";
+});
+
+// ✅ Pause button listener
+pauseBtn.addEventListener("click", () => {
+    paused = !paused;       // toggle pause / unpause
+    if(!paused) update();   // agar unpause hua to game loop resume
+});
+
+restartBtn.addEventListener("click", () => { startGame(); });
+
+homeBtn.addEventListener("click", () => {
+    titleScreen.style.display = "flex";
+    restartBtn.style.display = "none";
+    homeBtn.style.display = "none";
+    pauseBtn.style.display = "none";
+});
+
+confirmSkinBtn.addEventListener("click", () => {
+    if(confirmSkinBtn.classList.contains("unlocked")){
+        localStorage.setItem("selectedSkin", selectedSkin.name);
+        storeScreen.style.display = "none";
+        titleScreen.style.display = "flex";
+    }
+});
 let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty;
 highScore = localStorage.getItem("fluppyHighScore") || 0;
 difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
