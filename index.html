@@ -226,10 +226,67 @@ function startGame(){
             document.body.removeChild(overlay);
             pauseBtn.style.display="block";
             gameStarted=true;
-            pipeInterval = setInterval(createPipe,2000);
-            update();
-        }
-    },1000);
+            let pipeTimer = 0;
+const pipeSpawnInterval = 2000; // 2 seconds
+
+function update(timestamp){
+    if(!gameStarted || gameOver || paused) return;
+
+    // Bird physics
+    bird.velocity += gravity;
+    bird.y += bird.velocity;
+    bird.rotation = Math.min(bird.velocity*5,25);
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // ---- PIPE GENERATION ----
+    pipeTimer += 16.66; // approx 60fps per frame (~16.66ms)
+    if(pipeTimer >= pipeSpawnInterval){
+        createPipe();
+        pipeTimer = 0;
+    }
+
+    // ---- Pipes draw and move ----
+    pipes.forEach(pipe => {
+        pipe.x -= pipeSpeed;
+
+        ctx.fillStyle = selectedSkin.pipeColor;
+        ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
+        ctx.fillRect(pipe.x, canvas.height - pipe.bottom, pipe.width, pipe.bottom);
+
+        if(bird.x < pipe.x + pipe.width && bird.x + bird.width > pipe.x &&
+           (bird.y < pipe.top || bird.y + bird.height > canvas.height - pipe.bottom)) {
+            endGame();
+        }
+
+        if(!pipe.passed && pipe.x + pipe.width < bird.x){
+            score++;
+            pipe.passed = true;
+        }
+    });
+
+    // ---- Ground ----
+    const groundHeight = 50;
+    ctx.fillStyle = selectedSkin.groundColor;
+    ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
+
+    // ---- Bird ----
+    const birdImgObj = new Image();
+    birdImgObj.src = selectedSkin.file;
+    ctx.save();
+    ctx.translate(bird.x + bird.width/2, bird.y + bird.height/2);
+    ctx.rotate(bird.rotation * Math.PI / 180);
+    ctx.drawImage(birdImgObj, -bird.width/2, -bird.height/2, bird.width, bird.height);
+    ctx.restore();
+
+    // ---- UI ----
+    ctx.fillStyle = "black";
+    ctx.font = "25px Arial";
+    ctx.fillText("Score: " + score, 20, 40);
+    ctx.fillText("High Score: " + highScore, 20, 70);
+
+    requestAnimationFrame(update);
 }
 
 function endGame(){
