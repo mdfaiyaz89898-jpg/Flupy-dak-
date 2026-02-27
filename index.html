@@ -202,7 +202,10 @@ function endGame(){
         if(score >= s.unlockScore){
             skinData[s.name].unlocked = true;
         }
-    }
+    });
+
+    localStorage.setItem("fluppySkins", JSON.stringify(skinData));
+}
 
     // ✅ Save skins permanently
     localStorage.setItem("fluppySkins", JSON.stringify(skinData));
@@ -335,14 +338,11 @@ function renderSkins(){
 }
 
 confirmSkinBtn.addEventListener("click",()=>{
-    if(confirmSkinBtn.classList.contains("unlocked")){
-        localStorage.setItem("selectedSkin",selectedSkin.name);
-        [s.name].unlocked=true;
-        });
-        localStorage.setItem("fluppySkins",JSON.stringify(skinData));
-        storeScreen.style.display="none";
-        titleScreen.style.display="flex";
-    }
+    if(confirmSkinBtn.classList.contains("unlocked")){
+        localStorage.setItem("selectedSkin", selectedSkin.name);
+        storeScreen.style.display="none";
+        titleScreen.style.display="flex";
+    }
 });
 
 pauseBtn.addEventListener("click",()=>{ paused=!paused; if(!paused) update(); });
