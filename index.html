@@ -32,10 +32,23 @@ canvas{ display:block; }
     flex-direction: column; /* vertical list */
     align-items: center;
     margin: 15px 0;
-    flex-wrap: nowrap;       /* wrap nahi hoga */
-    height: 60%;             /* jitni height store screen mein dikhe */
+    height: 70%;            /* jitna screen me dikhe */
     overflow-y: auto;        /* vertical scroll enable */
     padding-right: 10px;     /* scrollbar ke liye space */
+}
+
+/* Optional: custom scrollbar */
+.skinRow::-webkit-scrollbar {
+    width: 10px;
+}
+
+.skinRow::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 5px;
+}
+
+.skinRow::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
 
 /* Optional: custom scrollbar */
