@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Fluppy Bird with Store & Coins</title>
+<title>Fluppy Bird with Store</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{ margin:0; overflow:hidden; font-family:Arial; background:skyblue;}
@@ -28,9 +28,9 @@ canvas{ display:block; }
 #storeScreen h2{ font-size:32px; margin-bottom:20px; color:#333;}
 #storeScreen .backStoreBtn{ position:absolute; top:10px; left:10px; font-size:30px; background:transparent; color:orange; border:none; cursor:pointer; }
 .skinRow{ display:flex; justify-content:center; margin:15px 0; flex-wrap:wrap;}
-.skinBox{ width:120px; margin:0 10px; text-align:center; cursor:pointer; border-radius:10px; padding:6px; position:relative; }
+.skinBox{ width:120px; margin:10px; text-align:center; cursor:pointer; border-radius:10px; padding:6px; position:relative; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.2);}
 .skinBox img{ width:100px; height:100px; border-radius:10px; }
-.lockOverlay{ position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:30px; }
+.lockOverlay{ position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:25px; }
 .confirmBtn{ padding:6px 20px; font-size:16px; border:none; border-radius:6px; cursor:pointer; margin-top:5px; font-weight:bold; }
 .confirmBtn.locked{ background:grey; color:white; cursor:not-allowed; }
 .confirmBtn.unlocked{ background:green; color:white; }
@@ -105,22 +105,22 @@ const upperSkinDisplay = document.getElementById("upperSkinDisplay");
 const skinRow = document.getElementById("skinRow");
 
 let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty;
-let coins = parseInt(localStorage.getItem("fluppyCoins")) || 0;
-highScore = localStorage.getItem("fluppyHighScore") || 0;
+highScore = parseInt(localStorage.getItem("fluppyHighScore")) || 0;
 difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
 pipeSpeed = 2;
 const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
 
-// --- Skin Data ---
+// --- Skin Data with coin prices ---
 let skins = [
-  {name:"Mango Bird", file:"Picsart_26-02-27_01-28-33-302.png", coinPrice:10},
-  {name:"Happy Perrot", file:"Picsart_26-02-27_10-16-34-761.png", coinPrice:20},
-  {name:"Angry Bird", file:"Picsart_26-02-27_10-15-45-688.png", coinPrice:30}
+  {name:"Mango Bird", file:"Picsart_26-02-27_01-28-33-302.png", unlockScore:10, price:10},
+  {name:"Happy Perrot", file:"Picsart_26-02-27_10-16-34-761.png", unlockScore:20, price:20},
+  {name:"Angry Bird", file:"Picsart_26-02-27_10-15-45-688.png", unlockScore:35, price:30}
 ];
 let defaultSkin = {name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png"};
 let selectedSkin = defaultSkin;
 let skinConfirmed = false;
 
+// --- Game Init ---
 function initGame(){
     bird = {x:100, y:200, width:60, height:60, velocity:0, rotation:0};
     gravity = 0.35;
@@ -132,7 +132,7 @@ function initGame(){
     document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
 }
 
-// --- Create pipe ---
+// --- Create Pipe ---
 function createPipe(){
     const gap = 220;
     const topHeight = Math.random()*(canvas.height-gap-100)+50;
@@ -140,7 +140,7 @@ function createPipe(){
     pipes.push({x:pipeX, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
 }
 
-// --- Countdown Start ---
+// --- Countdown + Start Game ---
 let pipeInterval;
 function startGame(){
     titleScreen.style.display="none";
@@ -153,9 +153,9 @@ function startGame(){
     gameStarted = false;
     initGame();
 
+    // --- Countdown Overlay ---
     let countdown = ["3","2","1","Go!"];
     let countIndex = 0;
-
     const overlay = document.createElement("div");
     overlay.style.position="absolute";
     overlay.style.top="0";
@@ -172,16 +172,6 @@ function startGame(){
     overlay.style.zIndex="1000";
     document.body.appendChild(overlay);
 
-    const birdImgObj = new Image();
-    birdImgObj.src = selectedSkin.file;
-
-    function drawBirdPaused(){
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.drawImage(birdImgObj,bird.x,bird.y,bird.width,bird.height);
-        requestAnimationFrame(drawBirdPaused);
-    }
-    drawBirdPaused();
-
     const interval = setInterval(()=>{
         overlay.textContent = countdown[countIndex];
         countIndex++;
@@ -196,18 +186,17 @@ function startGame(){
     },1000);
 }
 
+// --- End Game ---
 function endGame(){
     gameOver = true;
     clearInterval(pipeInterval);
     restartBtn.style.display="block";
     homeBtn.style.display="block";
     pauseBtn.style.display="none";
-    coins += score;
-    localStorage.setItem("fluppyCoins",coins);
     if(score>highScore){ highScore=score; localStorage.setItem("fluppyHighScore",highScore);}
 }
 
-// --- Update function ---
+// --- Update Function ---
 function update(){
     if(!gameStarted || gameOver || paused) return;
 
@@ -230,7 +219,6 @@ function update(){
         ctx.fill();
     } else {
         canvas.style.background="#1a1a2e";
-        // stars
         ctx.fillStyle="white";
         for(let i=0;i<50;i++){
             ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height,2,2);
@@ -263,13 +251,13 @@ function update(){
     if(bird.y+bird.height>canvas.height || bird.y<0) endGame();
 
     ctx.fillStyle="black"; ctx.font="25px Arial";
-    ctx.fillText("Score: "+score+"  Coins: "+coins,20,40);
+    ctx.fillText("Score: "+score,20,40);
     ctx.fillText("High Score: "+highScore,20,70);
 
     requestAnimationFrame(update);
 }
 
-// Jump
+// --- Jump ---
 function jump(){ if(gameStarted && !gameOver) bird.velocity=-6; }
 document.addEventListener("click", jump);
 document.addEventListener("touchstart", e=>{ e.preventDefault(); jump(); });
@@ -278,17 +266,6 @@ document.addEventListener("touchstart", e=>{ e.preventDefault(); jump(); });
 playBtn.addEventListener("click",()=>{ startGame(); });
 settingsBtnMain.addEventListener("click",()=>{ titleScreen.style.display="none"; settingsScreen.style.display="flex"; });
 backBtn.addEventListener("click",()=>{ settingsScreen.style.display="none"; titleScreen.style.display="flex"; });
-storeBtn.addEventListener("click",renderSkins);
-backStoreBtn.addEventListener("click",()=>{ storeScreen.style.display="none"; titleScreen.style.display="flex"; });
-
-// Difficulty radio
-document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
-    radio.addEventListener("change",()=>{
-        difficulty = radio.value;
-        pipeSpeed = difficultySpeeds[difficulty];
-        localStorage.setItem("fluppyDifficulty",difficulty);
-    });
-});
 
 // --- Store Logic ---
 function renderSkins(){
@@ -302,36 +279,51 @@ function renderSkins(){
     skins.forEach((s)=>{
         const box = document.createElement("div");
         box.className="skinBox";
+
         const img = document.createElement("img");
         img.src = s.file;
         box.appendChild(img);
+
         const name = document.createElement("div");
-        name.textContent = s.name;
+        name.textContent = s.name + " (" + s.price + " coins)";
         box.appendChild(name);
-        const price = document.createElement("div");
-        price.textContent = "Price: "+s.coinPrice+" Coins";
-        box.appendChild(price);
 
         const overlay = document.createElement("div");
         overlay.className="lockOverlay";
-        if(coins>=s.coinPrice){ overlay.style.display="none"; } else { overlay.textContent="🔒"; }
+        if(score >= s.unlockScore){ overlay.style.display="none"; } else { overlay.textContent="🔒"; }
         box.appendChild(overlay);
 
         box.addEventListener("click",()=>{
-            if(coins>=s.coinPrice){
-                selectedSkin=s;
+            if(score >= s.unlockScore){
+                selectedSkin = s;
                 confirmSkinBtn.className="confirmBtn unlocked";
-            } else { confirmSkinBtn.className="confirmBtn locked"; }
+            } else {
+                confirmSkinBtn.className="confirmBtn locked";
+            }
             renderSkins();
         });
 
         skinRow.appendChild(box);
     });
 
-    if(coins>=selectedSkin.coinPrice){ confirmSkinBtn.className="confirmBtn unlocked"; } 
+    if(score >= selectedSkin.unlockScore){ confirmSkinBtn.className="confirmBtn unlocked"; } 
     else { confirmSkinBtn.className="confirmBtn locked"; }
 }
 
+// Store open + render
+storeBtn.addEventListener("click", ()=>{
+    titleScreen.style.display = "none";
+    storeScreen.style.display = "flex";
+    renderSkins();
+});
+
+// Back from store
+backStoreBtn.addEventListener("click", ()=>{
+    storeScreen.style.display = "none";
+    titleScreen.style.display = "flex";
+});
+
+// Confirm skin
 confirmSkinBtn.addEventListener("click",()=>{
     if(confirmSkinBtn.classList.contains("unlocked")){
         storeScreen.style.display="none";
@@ -339,7 +331,16 @@ confirmSkinBtn.addEventListener("click",()=>{
     }
 });
 
-// --- Pause/Restart/Home ---
+// Difficulty radio
+document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
+    radio.addEventListener("change",()=>{
+        difficulty = radio.value;
+        pipeSpeed = difficultySpeeds[difficulty];
+        localStorage.setItem("fluppyDifficulty",difficulty);
+    });
+});
+
+// Pause/Restart/Home
 pauseBtn.addEventListener("click",()=>{ paused=!paused; if(!paused) update(); });
 restartBtn.addEventListener("click",()=>{ startGame(); });
 homeBtn.addEventListener("click",()=>{
@@ -350,4 +351,4 @@ homeBtn.addEventListener("click",()=>{
 });
 </script>
 </body>
-    </html>
+</html>
