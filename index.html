@@ -254,43 +254,68 @@ function endGame(){
     localStorage.setItem("fluppySkins", JSON.stringify(skinData));
 }
 
-function update(){
-    if(!gameStarted || gameOver || paused) return;
+function update() {
+    if (!gameStarted || gameOver || paused) return;
 
-    bird.velocity += gravity;
-    bird.y += bird.velocity;
-    bird.rotation = Math.min(bird.velocity*5,25);
+    // Bird physics
+    bird.velocity += gravity;
+    bird.y += bird.velocity;
+    bird.rotation = Math.min(bird.velocity * 5, 25);
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const birdImgObj = new Image();
-    birdImgObj.src = selectedSkin.file;
-    ctx.save();
-    ctx.translate(bird.x+bird.width/2,bird.y+bird.height/2);
-    ctx.rotate(bird.rotation*Math.PI/180);
-    ctx.drawImage(birdImgObj,-bird.width/2,-bird.height/2,bird.width,bird.height);
-    ctx.restore();
+    // Background
+    ctx.fillStyle = "skyblue";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    pipes.forEach(pipe=>{
-        pipe.x -= pipeSpeed;
-        ctx.fillStyle="#00c853";
-        ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
-        ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
+    // Draw pipes with skin-based color
+    pipes.forEach(pipe => {
+        pipe.x -= pipeSpeed;
 
-        if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top || bird.y+bird.height>canvas.height-pipe.bottom)){
-            endGame();
-        }
+        // Pipe color based on selected skin
+        ctx.fillStyle = selectedSkin.pipeColor;
+        ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
+        ctx.fillRect(pipe.x, canvas.height - pipe.bottom, pipe.width, pipe.bottom);
 
-        if(!pipe.passed && pipe.x+pipe.width<bird.x){ score++; pipe.passed=true;}
-    });
+        // Collision detection
+        if (
+            bird.x < pipe.x + pipe.width &&
+            bird.x + bird.width > pipe.x &&
+            (bird.y < pipe.top || bird.y + bird.height > canvas.height - pipe.bottom)
+        ) {
+            endGame();
+        }
 
-    if(bird.y+bird.height>canvas.height || bird.y<0) endGame();
+        // Score
+        if (!pipe.passed && pipe.x + pipe.width < bird.x) {
+            score++;
+            pipe.passed = true;
+        }
+    });
 
-    ctx.fillStyle="black"; ctx.font="25px Arial";
-    ctx.fillText("Score: "+score,20,40);
-    ctx.fillText("High Score: "+highScore,20,70);
+    // Draw ground with skin-based color
+    const groundHeight = 50; // Ground height
+    ctx.fillStyle = selectedSkin.groundColor;
+    ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
 
-    requestAnimationFrame(update);
+    // Draw bird
+    const birdImgObj = new Image();
+    birdImgObj.src = selectedSkin.file;
+    ctx.save();
+    ctx.translate(bird.x + bird.width / 2, bird.y + bird.height / 2);
+    ctx.rotate(bird.rotation * Math.PI / 180);
+    ctx.drawImage(birdImgObj, -bird.width / 2, -bird.height / 2, bird.width, bird.height);
+    ctx.restore();
+
+    // UI: Score & High Score
+    ctx.fillStyle = "black";
+    ctx.font = "25px Arial";
+    ctx.fillText("Score: " + score, 20, 40);
+    ctx.fillText("High Score: " + highScore, 20, 70);
+
+    // Continue updating
+    requestAnimationFrame(update);
 }
 
 function jump(){ if(gameStarted && !gameOver) bird.velocity=-5; }
