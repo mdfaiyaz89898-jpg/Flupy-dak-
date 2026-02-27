@@ -1,345 +1,286 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Fluppy Bird with Store & Skins</title>
+<title>Fluppy Bird</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{ margin:0; overflow:hidden; font-family:Arial; background:skyblue;}
 canvas{ display:block; }
 
-/* Screens */
-#titleScreen, #settingsScreen, #storeScreen{ position:absolute; width:100%; height:100%; top:0; left:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-#titleScreen{ background:skyblue; }
-#titleScreen h1{ font-size:60px; color:yellow; text-shadow:4px 4px 0 black,8px 8px 0 orange; font-family:'Comic Sans MS', cursive; animation:bounce 1s infinite alternate; margin-bottom:30px;}
-@keyframes bounce{0%{transform:translateY(0px);}100%{transform:translateY(-10px);}}
-#titleScreen button, #settingsScreen button, #storeScreen button{ padding:12px 30px; font-size:20px; border:none; border-radius:12px; margin:8px; cursor:pointer; transition:0.2s; }
-#titleScreen button:hover, #settingsScreen button:hover, #storeScreen button:hover{ transform:scale(1.1);}
-#playBtn{ background:linear-gradient(45deg,#ffeb3b,#fbc02d); color:#000; font-weight:bold; box-shadow:3px 3px 0 #ffa000;}
-#settingsBtnMain{ background:linear-gradient(45deg,#ff9800,#f57c00); color:white; font-weight:bold; box-shadow:3px 3px 0 #e65100;}
-#storeBtn{ background:linear-gradient(45deg,#4fc3f7,#0288d1); color:white; font-weight:bold; box-shadow:3px 3px 0 #0277bd;}
+#titleScreen, #storeScreen{
+position:absolute; width:100%; height:100%;
+display:flex; flex-direction:column;
+align-items:center; justify-content:center;
+}
 
-/* Settings Screen */
-#settingsScreen{ background:#f0f0f0; display:none; flex-direction:column; justify-content:flex-start; padding-top:60px; width:100%; height:100%; }
-#settingsScreen h2{ margin-bottom:20px; }
-#settingsScreen .backBtn{ position:absolute; top:10px; left:10px; font-size:25px; background:transparent; color:orange; border:none; cursor:pointer; }
+#titleScreen h1{
+font-size:60px; color:yellow;
+text-shadow:4px 4px 0 black,8px 8px 0 orange;
+margin-bottom:30px;
+}
 
-/* Store Screen */
-#storeScreen{ background:#d0f0f0; display:none; flex-direction:column; justify-content:flex-start; padding-top:40px; width:100%; height:100%; }
-#storeScreen h2{ font-size:32px; margin-bottom:20px; color:#333;}
-#storeScreen .backStoreBtn{ position:absolute; top:10px; left:10px; font-size:30px; background:transparent; color:orange; border:none; cursor:pointer; }
-.skinRow{ display:flex; justify-content:center; margin:15px 0; flex-wrap:wrap; }
-.skinBox{ width:120px; margin:0 10px; text-align:center; cursor:pointer; border-radius:10px; padding:6px; position:relative; }
-.skinBox img{ width:100px; height:100px; border-radius:10px; }
-.lockOverlay{ position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:30px; }
-.confirmBtn{ padding:6px 20px; font-size:16px; border:none; border-radius:6px; cursor:pointer; margin-top:5px; font-weight:bold; }
-.confirmBtn.locked{ background:grey; color:white; cursor:not-allowed; }
+button{
+padding:12px 30px; font-size:20px;
+border:none; border-radius:12px;
+margin:8px; cursor:pointer;
+}
+
+#playBtn{ background:#ffd54f; font-weight:bold; }
+#storeBtn{ background:#29b6f6; color:white; }
+
+#storeScreen{ background:#d0f0f0; display:none; }
+.skinRow{ display:flex; flex-wrap:wrap; justify-content:center; }
+.skinBox{ width:120px; margin:10px; text-align:center; position:relative; cursor:pointer; }
+.skinBox img{ width:100px; height:100px; }
+.lockOverlay{
+position:absolute; top:0; left:0;
+width:100%; height:100%;
+background:rgba(0,0,0,0.5);
+display:flex; align-items:center; justify-content:center;
+color:white; font-size:30px;
+}
+.confirmBtn{ padding:8px 20px; border-radius:8px; }
+.confirmBtn.locked{ background:grey; color:white; }
 .confirmBtn.unlocked{ background:green; color:white; }
 
-/* In-Game UI */
-#pauseBtn, #restartBtn, #homeBtn{ position:absolute; top:10px; padding:8px 12px; border:none; border-radius:8px; font-size:16px; cursor:pointer; font-weight:bold; }
-#pauseBtn{ right:10px; display:none; background:#ccc; color:#333; }
-#pauseBtn::after{ content:"⏸"; font-size:18px; }
-#restartBtn{ display:none; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(45deg,#ff5722,#e64a19); color:white; box-shadow:3px 3px 0 #b71c1c;}
-#homeBtn{ display:none; top:50%; left:50%; transform:translate(-50%,70%); background:linear-gradient(45deg,#03a9f4,#0288d1); color:white; box-shadow:3px 3px 0 #01579b;}
+#restartBtn,#homeBtn{
+position:absolute; top:50%; left:50%;
+transform:translate(-50%,-50%);
+display:none;
+}
 
-/* Made by */
-#madeBy{ position:absolute; bottom:10px; left:10px; font-size:14px; }
+#homeBtn{ transform:translate(-50%,40%); }
 </style>
 </head>
 <body>
-<div id="titleScreen">
-    <h1>Fluppy Bird</h1>
-    <button id="playBtn">Play</button>
-    <button id="settingsBtnMain">Settings</button>
-    <button id="storeBtn">Store</button>
-</div>
 
-<div id="settingsScreen">
-    <button class="backBtn">&#8592;</button>
-    <h2>Select Difficulty</h2>
-    <div id="difficultyOptions">
-        <label class="veryEasy"><input type="radio" name="difficulty" value="Very Easy"> Very Easy</label>
-        <label class="normal"><input type="radio" name="difficulty" value="Normal"> Normal</label>
-        <label class="hard"><input type="radio" name="difficulty" value="Hard"> Hard</label>
-    </div>
+<div id="titleScreen">
+<h1>Fluppy Bird</h1>
+<button id="playBtn">Play</button>
+<button id="storeBtn">Store</button>
 </div>
 
 <div id="storeScreen">
-    <button class="backStoreBtn">&#8592;</button>
-    <h2>Choose Skin</h2>
-    <div id="upperSkinDisplay" style="text-align:center;margin:10px;"></div>
-    <div class="skinRow" id="skinRow"></div>
-    <button id="confirmSkinBtn" class="confirmBtn locked">Confirm</button>
+<h2>Choose Skin</h2>
+<div id="upperSkinDisplay"></div>
+<div class="skinRow" id="skinRow"></div>
+<button id="confirmSkinBtn" class="confirmBtn locked">Confirm</button>
+<button onclick="backHome()">Back</button>
 </div>
 
 <canvas id="gameCanvas"></canvas>
-<button id="pauseBtn"></button>
 <button id="restartBtn">Restart</button>
 <button id="homeBtn">Home</button>
-<div id="madeBy">Made by TrollHunter</div>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = innerWidth;
+canvas.height = innerHeight;
 
-const titleScreen = document.getElementById("titleScreen");
-const settingsScreen = document.getElementById("settingsScreen");
-const storeScreen = document.getElementById("storeScreen");
-const playBtn = document.getElementById("playBtn");
-const settingsBtnMain = document.getElementById("settingsBtnMain");
-const storeBtn = document.getElementById("storeBtn");
-const backBtn = document.querySelector(".backBtn");
-const backStoreBtn = document.querySelector(".backStoreBtn");
-const pauseBtn = document.getElementById("pauseBtn");
-const restartBtn = document.getElementById("restartBtn");
-const homeBtn = document.getElementById("homeBtn");
-const confirmSkinBtn = document.getElementById("confirmSkinBtn");
-const upperSkinDisplay = document.getElementById("upperSkinDisplay");
-const skinRow = document.getElementById("skinRow");
+const titleScreen=document.getElementById("titleScreen");
+const storeScreen=document.getElementById("storeScreen");
+const playBtn=document.getElementById("playBtn");
+const storeBtn=document.getElementById("storeBtn");
+const restartBtn=document.getElementById("restartBtn");
+const homeBtn=document.getElementById("homeBtn");
+const confirmSkinBtn=document.getElementById("confirmSkinBtn");
+const upperSkinDisplay=document.getElementById("upperSkinDisplay");
+const skinRow=document.getElementById("skinRow");
 
-let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty;
-highScore = parseInt(localStorage.getItem("fluppyHighScore")) || 0;
-difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
-pipeSpeed = 2;
-const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
+let bird, gravity, pipes, score, highScore, gameOver, pipeInterval;
+highScore=parseInt(localStorage.getItem("fluppyHighScore"))||0;
 
-// Safe load localStorage (auto-fix if corrupt)
+// SAFE storage load
 let skinData;
-try {
-    skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
-} catch(e){
-    skinData = {};
-}
+try{
+skinData=JSON.parse(localStorage.getItem("fluppySkins"))||{};
+}catch{ skinData={}; }
 
-// Skins
-let skins = [
-  {name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png", unlockScore:0},
-  {name:"Mango Bird", file:"Picsart_26-02-27_01-28-33-302.png", unlockScore:10},
-  {name:"Happy Perrot", file:"Picsart_26-02-27_10-16-34-761.png", unlockScore:20},
-  {name:"Angry Bird", file:"Picsart_26-02-27_10-15-45-688.png", unlockScore:30}
+let skins=[
+{name:"Bird",file:"Picsart_26-02-26_17-30-25-252.png",unlockScore:0},
+{name:"Mango Bird",file:"Picsart_26-02-27_01-28-33-302.png",unlockScore:10},
+{name:"Happy Perrot",file:"Picsart_26-02-27_10-16-34-761.png",unlockScore:20}
 ];
 
-// Initialize skinData
 skins.forEach(s=>{
-    if(s.unlockScore===0) skinData[s.name]={unlocked:true};
-    else if(!skinData[s.name]) skinData[s.name]={unlocked:false};
-});
-let selectedSkinName = localStorage.getItem("selectedSkin") || "Bird";
-let selectedSkin = skins.find(s=>s.name===selectedSkinName);
-
-// Preload all images
-let loadedImages = {};
-skins.forEach(s=>{
-    const img = new Image();
-    img.src = s.file;
-    loadedImages[s.name] = img;
+if(s.unlockScore===0) skinData[s.name]={unlocked:true};
+else if(!skinData[s.name]) skinData[s.name]={unlocked:false};
 });
 
-// Init
+let selectedSkinName=localStorage.getItem("selectedSkin")||"Bird";
+let selectedSkin=skins.find(s=>s.name===selectedSkinName);
+
+let loadedImages={};
+skins.forEach(s=>{
+let img=new Image();
+img.src=s.file;
+loadedImages[s.name]=img;
+});
+
 function initGame(){
-    bird = {x:100, y:200, width:60, height:60, velocity:0, rotation:0};
-    gravity = 0.35;
-    pipes = [];
-    score = 0;
-    gameOver = false;
-    paused = false;
-    pipeSpeed = difficultySpeeds[difficulty];
-    document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
+bird={x:100,y:200,width:60,height:60,velocity:0};
+gravity=0.35;
+pipes=[];
+score=0;
+gameOver=false;
 }
 
-// Pipe
 function createPipe(){
-    const gap = 220;
-    const topHeight = Math.random()*(canvas.height-gap-100)+50;
-    const pipeX = canvas.width;
-    pipes.push({x:pipeX, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
+let gap=220;
+let topHeight=Math.random()*(canvas.height-gap-100)+50;
+pipes.push({x:canvas.width,width:60,top:topHeight,bottom:canvas.height-topHeight-gap,passed:false});
 }
 
-let pipeInterval;
 function startGame(){
-    titleScreen.style.display="none";
-    settingsScreen.style.display="none";
-    storeScreen.style.display="none";
-    pauseBtn.style.display="none";
-    restartBtn.style.display="none";
-    homeBtn.style.display="none";
-
-    gameStarted = false;
-    initGame();
-
-    let countdown = ["3","2","1","Go!"];
-    let countIndex = 0;
-    const overlay = document.createElement("div");
-    overlay.style.position="absolute";
-    overlay.style.top="0";
-    overlay.style.left="0";
-    overlay.style.width="100%";
-    overlay.style.height="100%";
-    overlay.style.display="flex";
-    overlay.style.alignItems="center";
-    overlay.style.justifyContent="center";
-    overlay.style.fontSize = "120px";
-    overlay.style.color="white";
-    overlay.style.textShadow="4px 4px 0 black";
-    overlay.style.background="rgba(0,0,0,0.3)";
-    overlay.style.zIndex="1000";
-    document.body.appendChild(overlay);
-
-    const interval = setInterval(()=>{
-        overlay.textContent = countdown[countIndex];
-        countIndex++;
-        if(countIndex>=countdown.length){
-            clearInterval(interval);
-            document.body.removeChild(overlay);
-            pauseBtn.style.display="block";
-            gameStarted=true;
-            pipeInterval = setInterval(createPipe,2000);
-            update();
-        }
-    },1000);
+titleScreen.style.display="none";
+storeScreen.style.display="none";
+restartBtn.style.display="none";
+homeBtn.style.display="none";
+initGame();
+pipeInterval=setInterval(createPipe,2000);
+update();
 }
 
 function endGame(){
-    gameOver = true;
-    clearInterval(pipeInterval);
-    restartBtn.style.display="block";
-    homeBtn.style.display="block";
-    pauseBtn.style.display="none";
-    if(score>highScore){ highScore=score; localStorage.setItem("fluppyHighScore",highScore);}
+gameOver=true;
+clearInterval(pipeInterval);
+restartBtn.style.display="block";
+homeBtn.style.display="block";
+
+if(score>highScore){
+highScore=score;
+localStorage.setItem("fluppyHighScore",highScore);
 }
 
-// Update
+// 🔥 INSTANT UNLOCK FIX
+let unlocked=false;
+skins.forEach(s=>{
+if(score>=s.unlockScore && !skinData[s.name].unlocked){
+skinData[s.name].unlocked=true;
+unlocked=true;
+}
+});
+if(unlocked){
+localStorage.setItem("fluppySkins",JSON.stringify(skinData));
+}
+}
+
 function update(){
-    if(!gameStarted || gameOver || paused) return;
+if(gameOver) return;
+bird.velocity+=gravity;
+bird.y+=bird.velocity;
 
-    bird.velocity += gravity;
-    bird.y += bird.velocity;
-    bird.rotation = Math.min(bird.velocity*5,25);
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    // Background
-    canvas.style.background = "skyblue";
-    ctx.fillStyle="white";
-    ctx.beginPath();
-    ctx.arc(200,100,30,0,Math.PI*2);
-    ctx.arc(240,100,30,0,Math.PI*2);
-    ctx.arc(220,80,30,0,Math.PI*2);
-    ctx.fill();
-
-    // Draw bird
-    const birdImgObj = loadedImages[selectedSkin.name];
-    if(birdImgObj.complete){
-        ctx.save();
-        ctx.translate(bird.x+bird.width/2,bird.y+bird.height/2);
-        ctx.rotate(bird.rotation*Math.PI/180);
-        ctx.drawImage(birdImgObj,-bird.width/2,-bird.height/2,bird.width,bird.height);
-        ctx.restore();
-    }
-
-    // Draw pipes
-    pipes.forEach(pipe=>{
-        pipe.x -= pipeSpeed;
-        ctx.fillStyle="#00c853";
-        ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
-        ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
-
-        if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top || bird.y+bird.height>canvas.height-pipe.bottom)){
-            endGame();
-        }
-
-        if(!pipe.passed && pipe.x+pipe.width<bird.x){ score++; pipe.passed=true;}
-    });
-
-    if(bird.y+bird.height>canvas.height || bird.y<0) endGame();
-
-    ctx.fillStyle="black"; ctx.font="25px Arial";
-    ctx.fillText("Score: "+score,20,40);
-    ctx.fillText("High Score: "+highScore,20,70);
-
-    requestAnimationFrame(update);
+let img=loadedImages[selectedSkin.name];
+if(img.complete){
+ctx.drawImage(img,bird.x,bird.y,bird.width,bird.height);
 }
 
-function jump(){ if(gameStarted && !gameOver) bird.velocity=-6; }
-document.addEventListener("click", jump);
-document.addEventListener("touchstart", e=>{ e.preventDefault(); jump(); });
+pipes.forEach(pipe=>{
+pipe.x-=3;
+ctx.fillStyle="green";
+ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
+ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
 
-playBtn.addEventListener("click",()=>{ startGame(); });
-settingsBtnMain.addEventListener("click",()=>{ titleScreen.style.display="none"; settingsScreen.style.display="flex"; });
-backBtn.addEventListener("click",()=>{ settingsScreen.style.display="none"; titleScreen.style.display="flex"; });
-storeBtn.addEventListener("click",()=>{ storeScreen.style.display="flex"; renderSkins(); titleScreen.style.display="none"; });
-backStoreBtn.addEventListener("click",()=>{ storeScreen.style.display="none"; titleScreen.style.display="flex"; });
+if(bird.x<pipe.x+pipe.width &&
+bird.x+bird.width>pipe.x &&
+(bird.y<pipe.top || bird.y+bird.height>canvas.height-pipe.bottom)){
+endGame();
+}
 
-document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
-    radio.addEventListener("change",()=>{
-        difficulty = radio.value;
-        pipeSpeed = difficultySpeeds[difficulty];
-        localStorage.setItem("fluppyDifficulty",difficulty);
-    });
+if(!pipe.passed && pipe.x+pipe.width<bird.x){
+score++;
+pipe.passed=true;
+}
 });
 
-// Render store
+if(bird.y+bird.height>canvas.height||bird.y<0) endGame();
+
+ctx.fillStyle="black";
+ctx.font="25px Arial";
+ctx.fillText("Score: "+score,20,40);
+
+requestAnimationFrame(update);
+}
+
+// 🔥 JUMP POWER REDUCED
+document.addEventListener("click",()=>{
+if(!gameOver){
+bird.velocity=-4.8;
+}
+});
+
+playBtn.onclick=startGame;
+restartBtn.onclick=startGame;
+homeBtn.onclick=()=>{ titleScreen.style.display="flex"; restartBtn.style.display="none"; homeBtn.style.display="none"; };
+
+storeBtn.onclick=()=>{
+titleScreen.style.display="none";
+storeScreen.style.display="flex";
+renderSkins();
+};
+
+function backHome(){
+storeScreen.style.display="none";
+titleScreen.style.display="flex";
+}
+
 function renderSkins(){
-    skinRow.innerHTML="";
-    upperSkinDisplay.innerHTML="";
-    const upperImg = loadedImages[selectedSkin.name].cloneNode();
-    upperImg.style.width="150px"; upperImg.style.height="150px";
-    upperSkinDisplay.appendChild(upperImg);
+skinRow.innerHTML="";
+upperSkinDisplay.innerHTML="";
+let upperImg=loadedImages[selectedSkin.name].cloneNode();
+upperImg.style.width="150px";
+upperImg.style.height="150px";
+upperSkinDisplay.appendChild(upperImg);
 
-    skins.forEach(s=>{
-        const box = document.createElement("div");
-        box.className="skinBox";
-        const img = loadedImages[s.name].cloneNode();
-        img.style.width="100px"; img.style.height="100px";
-        box.appendChild(img);
+skins.forEach(s=>{
+let box=document.createElement("div");
+box.className="skinBox";
+let img=loadedImages[s.name].cloneNode();
+box.appendChild(img);
 
-        const name = document.createElement("div");
-        name.textContent=s.name;
-        box.appendChild(name);
+let name=document.createElement("div");
+name.textContent=s.name;
+box.appendChild(name);
 
-        const price = document.createElement("div");
-        price.textContent = s.unlockScore+" score";
-        box.appendChild(price);
+let price=document.createElement("div");
+price.textContent=s.unlockScore+" score";
+box.appendChild(price);
 
-        const overlay = document.createElement("div");
-        overlay.className="lockOverlay";
-        if(skinData[s.name].unlocked){ overlay.style.display="none"; } else { overlay.textContent="🔒"; }
-        box.appendChild(overlay);
+let overlay=document.createElement("div");
+overlay.className="lockOverlay";
+if(skinData[s.name].unlocked){ overlay.style.display="none"; }
+else{ overlay.textContent="🔒"; }
+box.appendChild(overlay);
 
-        box.addEventListener("click",()=>{
-            if(skinData[s.name].unlocked){
-                selectedSkin=s;
-                confirmSkinBtn.className="confirmBtn unlocked";
-            } else {
-                confirmSkinBtn.className="confirmBtn locked";
-            }
-            renderSkins();
-        });
-
-        skinRow.appendChild(box);
-    });
-
-    if(skinData[selectedSkin.name].unlocked){ confirmSkinBtn.className="confirmBtn unlocked"; } 
-    else { confirmSkinBtn.className="confirmBtn locked"; }
+box.onclick=()=>{
+if(skinData[s.name].unlocked){
+selectedSkin=s;
+confirmSkinBtn.className="confirmBtn unlocked";
+}else{
+confirmSkinBtn.className="confirmBtn locked";
 }
+renderSkins();
+};
 
-confirmSkinBtn.addEventListener("click",()=>{
-    if(confirmSkinBtn.classList.contains("unlocked")){
-        localStorage.setItem("selectedSkin",selectedSkin.name);
-        skins.forEach(s=>{
-            if(score>=s.unlockScore) skinData[s.name].unlocked=true;
-        });
-        localStorage.setItem("fluppySkins",JSON.stringify(skinData));
-        storeScreen.style.display="none";
-        titleScreen.style.display="flex";
-    }
+skinRow.appendChild(box);
 });
 
-pauseBtn.addEventListener("click",()=>{ paused=!paused; if(!paused) update(); });
-restartBtn.addEventListener("click",()=>{ startGame(); });
-homeBtn.addEventListener("click",()=>{ titleScreen.style.display="flex"; restartBtn.style.display="none"; homeBtn.style.display="none"; pauseBtn.style.display="none"; });
+if(skinData[selectedSkin.name].unlocked)
+confirmSkinBtn.className="confirmBtn unlocked";
+else
+confirmSkinBtn.className="confirmBtn locked";
+}
+
+confirmSkinBtn.onclick=()=>{
+if(confirmSkinBtn.classList.contains("unlocked")){
+localStorage.setItem("selectedSkin",selectedSkin.name);
+storeScreen.style.display="none";
+titleScreen.style.display="flex";
+}
+};
 </script>
 </body>
 </html>
