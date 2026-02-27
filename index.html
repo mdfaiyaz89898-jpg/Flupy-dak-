@@ -44,11 +44,9 @@ canvas{ display:block; }
 
 /* Made by */
 #madeBy{ position:absolute; bottom:10px; left:10px; font-size:14px; }
-
 </style>
 </head>
 <body>
-
 <div id="titleScreen">
     <h1>Fluppy Bird</h1>
     <button id="playBtn">Play</button>
@@ -60,9 +58,9 @@ canvas{ display:block; }
     <button class="backBtn">&#8592;</button>
     <h2>Select Difficulty</h2>
     <div id="difficultyOptions">
-        <label class="veryEasy"><input type="radio" name="difficulty" value="Very Easy"> Very Easy</label>
-        <label class="normal"><input type="radio" name="difficulty" value="Normal"> Normal</label>
-        <label class="hard"><input type="radio" name="difficulty" value="Hard"> Hard</label>
+        <label><input type="radio" name="difficulty" value="Very Easy"> Very Easy</label>
+        <label><input type="radio" name="difficulty" value="Normal"> Normal</label>
+        <label><input type="radio" name="difficulty" value="Hard"> Hard</label>
     </div>
 </div>
 
@@ -131,7 +129,6 @@ skins.forEach(s=>{
     loadedImages[s.name] = img;
 });
 
-// Init
 function initGame(){
     bird = {x:100, y:200, width:60, height:60, velocity:0, rotation:0};
     gravity = 0.35;
@@ -143,12 +140,10 @@ function initGame(){
     document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
 }
 
-// Pipe
 function createPipe(){
     const gap = 220;
     const topHeight = Math.random()*(canvas.height-gap-100)+50;
-    const pipeX = canvas.width;
-    pipes.push({x:pipeX, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
+    pipes.push({x:canvas.width, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
 }
 
 let pipeInterval;
@@ -204,7 +199,6 @@ function endGame(){
     if(score>highScore){ highScore=score; localStorage.setItem("fluppyHighScore",highScore);}
 }
 
-// Update
 function update(){
     if(!gameStarted || gameOver || paused) return;
 
@@ -274,23 +268,30 @@ document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
     });
 });
 
-// Render store
+// ✅ Fixed renderSkins
 function renderSkins(){
     skinRow.innerHTML="";
     upperSkinDisplay.innerHTML="";
-    const upperImg = loadedImages[selectedSkin.name];
-    upperImg.style.width="150px"; upperImg.style.height="150px";
+
+    // Upper selected skin preview
+    const upperImg = new Image();
+    upperImg.src = loadedImages[selectedSkin.name].src;
+    upperImg.style.width="150px";
+    upperImg.style.height="150px";
     upperSkinDisplay.appendChild(upperImg);
 
     skins.forEach(s=>{
         const box = document.createElement("div");
         box.className="skinBox";
-        const img = loadedImages[s.name];
-        img.style.width="100px"; img.style.height="100px";
+
+        const img = new Image();
+        img.src = loadedImages[s.name].src;
+        img.style.width="100px";
+        img.style.height="100px";
         box.appendChild(img);
 
         const name = document.createElement("div");
-        name.textContent=s.name;
+        name.textContent = s.name;
         box.appendChild(name);
 
         const price = document.createElement("div");
@@ -299,12 +300,13 @@ function renderSkins(){
 
         const overlay = document.createElement("div");
         overlay.className="lockOverlay";
-        if(skinData[s.name].unlocked){ overlay.style.display="none"; } else { overlay.textContent="🔒"; }
+        overlay.textContent = skinData[s.name].unlocked ? "" : "🔒";
+        overlay.style.display = skinData[s.name].unlocked ? "none" : "flex";
         box.appendChild(overlay);
 
         box.addEventListener("click",()=>{
             if(skinData[s.name].unlocked){
-                selectedSkin=s;
+                selectedSkin = s;
                 confirmSkinBtn.className="confirmBtn unlocked";
             } else {
                 confirmSkinBtn.className="confirmBtn locked";
@@ -315,14 +317,12 @@ function renderSkins(){
         skinRow.appendChild(box);
     });
 
-    if(skinData[selectedSkin.name].unlocked){ confirmSkinBtn.className="confirmBtn unlocked"; } 
-    else { confirmSkinBtn.className="confirmBtn locked"; }
+    confirmSkinBtn.className = skinData[selectedSkin.name].unlocked ? "confirmBtn unlocked" : "confirmBtn locked";
 }
 
 confirmSkinBtn.addEventListener("click",()=>{
     if(confirmSkinBtn.classList.contains("unlocked")){
         localStorage.setItem("selectedSkin",selectedSkin.name);
-        // Unlock skins if score >= requirement
         skins.forEach(s=>{
             if(score>=s.unlockScore) skinData[s.name].unlocked=true;
         });
@@ -337,4 +337,4 @@ restartBtn.addEventListener("click",()=>{ startGame(); });
 homeBtn.addEventListener("click",()=>{ titleScreen.style.display="flex"; restartBtn.style.display="none"; homeBtn.style.display="none"; pauseBtn.style.display="none"; });
 </script>
 </body>
-</html>
+    </html>
