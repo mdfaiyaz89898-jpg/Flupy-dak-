@@ -253,7 +253,7 @@ function update(){
     requestAnimationFrame(update);
 }
 
-function jump(){ if(gameStarted && !gameOver) bird.velocity=-6; }
+function jump(){ if(gameStarted && !gameOver) bird.velocity=-5; }
 document.addEventListener("click", jump);
 document.addEventListener("touchstart", e=>{ e.preventDefault(); jump(); });
 
