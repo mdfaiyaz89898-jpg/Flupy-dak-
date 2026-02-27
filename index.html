@@ -130,7 +130,7 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// --- Buttons ---
+// --- Button Elements ---
 const playBtn = document.getElementById("playBtn");
 const settingsBtnMain = document.getElementById("settingsBtnMain");
 const storeBtn = document.getElementById("storeBtn");
@@ -141,57 +141,62 @@ const restartBtn = document.getElementById("restartBtn");
 const homeBtn = document.getElementById("homeBtn");
 const confirmSkinBtn = document.getElementById("confirmSkinBtn");
 
-// --- Play button ---
-playBtn.addEventListener("click", ()=>{
+// --- Button Event Listeners ---
+
+// Play button
+playBtn.addEventListener("click", () => {
+    titleScreen.style.display = "none";
     startGame();
 });
 
-// --- Settings button ---
-settingsBtnMain.addEventListener("click", ()=>{
+// Settings button
+settingsBtnMain.addEventListener("click", () => {
     titleScreen.style.display = "none";
     settingsScreen.style.display = "flex";
 });
 
-// --- Back button (Settings) ---
-backBtn.addEventListener("click", ()=>{
+// Store button
+storeBtn.addEventListener("click", () => {
+    titleScreen.style.display = "none";
+    storeScreen.style.display = "flex";
+    renderSkins();
+});
+
+// Back button from settings
+backBtn.addEventListener("click", () => {
     settingsScreen.style.display = "none";
     titleScreen.style.display = "flex";
 });
 
-// --- Store button ---
-storeBtn.addEventListener("click", ()=>{
-    titleScreen.style.display = "none";
-    storeScreen.style.display = "flex";
-    renderSkins(); // render skins when store opens
-});
-
-// --- Back button (Store) ---
-backStoreBtn.addEventListener("click", ()=>{
+// Back button from store
+backStoreBtn.addEventListener("click", () => {
     storeScreen.style.display = "none";
     titleScreen.style.display = "flex";
 });
 
-// --- Pause button ---
-pauseBtn.addEventListener("click", ()=>{
-    paused = !paused; // toggle pause
-    if(!paused) update(); // resume game loop if unpaused
+// Pause button
+pauseBtn.addEventListener("click", () => {
+    paused = !paused;
+    if(!paused) update();
 });
 
-// --- Restart button ---
-restartBtn.addEventListener("click", ()=>{
+// Restart button
+restartBtn.addEventListener("click", () => {
+    restartBtn.style.display = "none";
+    homeBtn.style.display = "none";
     startGame();
 });
 
-// --- Home button ---
-homeBtn.addEventListener("click", ()=>{
-    titleScreen.style.display = "flex";
+// Home button
+homeBtn.addEventListener("click", () => {
     restartBtn.style.display = "none";
     homeBtn.style.display = "none";
     pauseBtn.style.display = "none";
+    titleScreen.style.display = "flex";
 });
 
-// --- Confirm Skin button ---
-confirmSkinBtn.addEventListener("click", ()=>{
+// Confirm skin button
+confirmSkinBtn.addEventListener("click", () => {
     if(confirmSkinBtn.classList.contains("unlocked")){
         localStorage.setItem("selectedSkin", selectedSkin.name);
         storeScreen.style.display = "none";
