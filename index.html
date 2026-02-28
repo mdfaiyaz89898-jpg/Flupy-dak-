@@ -1,4 +1,8 @@
 <script>
+window.onerror=function(msg,url,line){
+console.log("JS Error:",msg,"Line:",line);
+};
+
 const canvas=document.getElementById('gameCanvas');
 const ctx=canvas.getContext('2d');
 canvas.width=window.innerWidth;
@@ -17,15 +21,15 @@ const confirmSkinBtn=document.getElementById('confirmSkinBtn');
 const skinRow=document.getElementById('skinRow');
 const upperSkinDisplay=document.getElementById('upperSkinDisplay');
 
-// --- Game variables ---
+// ---------------- GAME VARIABLES ----------------
 let bird, gravity, pipes=[], score=0, gameOver=false, paused=false, gameStarted=false;
 
-let baseSpeed = 1.5;
-let pipeSpeed = baseSpeed;
-let speedIncrement = 0.1;
-let maxSpeed = 8;
+let baseSpeed=1.5;
+let pipeSpeed=baseSpeed;
+let speedIncrement=0.1;
+let maxSpeed=8;
 
-let highScore = parseInt(localStorage.getItem('fluppyHighScore')) || 0;
+let highScore=parseInt(localStorage.getItem('fluppyHighScore'))||0;
 
 // Stars
 let stars=[];
@@ -33,7 +37,7 @@ for(let i=0;i<50;i++){
 stars.push({x:Math.random()*canvas.width,y:Math.random()*(canvas.height/2)});
 }
 
-// Skins
+// ---------------- SKINS ----------------
 let skins=[
 {name:'Bird',file:'Picsart_26-02-26_17-30-25-252.png',unlockScore:0,pipeColor:'#00c853',groundColor:'#8B4513'},
 {name:'Mango Bird',file:'Picsart_26-02-27_01-28-33-302.png',unlockScore:10,pipeColor:'#FFA500',groundColor:'#FFCC80'},
@@ -43,13 +47,19 @@ let skins=[
 ];
 
 let skinData=JSON.parse(localStorage.getItem('fluppySkins'))||{};
-skins.forEach(s=>{if(!skinData[s.name]) skinData[s.name]={unlocked:s.unlockScore===0};});
-let selectedSkinName=localStorage.getItem('selectedSkin')||'Bird';
-let selectedSkin=skins.find(s=>s.name===selectedSkinName);
+skins.forEach(s=>{
+if(!skinData[s.name]){
+skinData[s.name]={unlocked:s.unlockScore===0};
+}
+});
 
-// PRELOAD BIRD IMAGE (important fix)
+let selectedSkinName=localStorage.getItem('selectedSkin')||'Bird';
+let selectedSkin=skins.find(s=>s.name===selectedSkinName)||skins[0];
+
 let birdImg=new Image();
 birdImg.src=selectedSkin.file;
+
+// ---------------- FUNCTIONS ----------------
 
 function initGame(){
 bird={x:100,y:200,width:60,height:60,velocity:0,rotation:0};
@@ -62,9 +72,9 @@ pipeSpeed=baseSpeed;
 }
 
 function createPipe(){
-let gap=220; // fixed gap (difficulty removed)
+let gap=220;
+let topHeight=Math.random()*(canvas.height-gap-150)+50;
 
-const topHeight=Math.random()*(canvas.height-gap-100)+50;
 pipes.push({
 x:canvas.width,
 width:70,
@@ -78,6 +88,7 @@ function startGame(){
 document.getElementById('titleScreen').style.display='none';
 document.getElementById('settingsScreen').style.display='none';
 document.getElementById('storeScreen').style.display='none';
+
 pauseBtn.style.display='block';
 restartBtn.style.display='none';
 homeBtn.style.display='none';
@@ -96,7 +107,7 @@ bird.rotation=Math.min(bird.velocity*5,25);
 
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
-// Day / Night
+// Day/Night
 if(Math.floor(score/5)%2===0){
 ctx.fillStyle="skyblue";
 ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -124,14 +135,16 @@ ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
 ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
 
 // Collision
-if(bird.x<pipe.x+pipe.width&&
-bird.x+bird.width>pipe.x&&
-(bird.y<pipe.top||bird.y+bird.height>canvas.height-pipe.bottom)){
+if(
+bird.x<pipe.x+pipe.width &&
+bird.x+bird.width>pipe.x &&
+(bird.y<pipe.top||bird.y+bird.height>canvas.height-pipe.bottom)
+){
 endGame();
 }
 
-// Score + Speed
-if(!pipe.passed&&pipe.x+pipe.width<bird.x){
+// Score
+if(!pipe.passed && pipe.x+pipe.width<bird.x){
 score++;
 pipe.passed=true;
 if(pipeSpeed<maxSpeed){
@@ -144,14 +157,14 @@ pipeSpeed+=speedIncrement;
 ctx.fillStyle=selectedSkin.groundColor;
 ctx.fillRect(0,canvas.height-50,canvas.width,50);
 
-// Bird draw (FIXED)
+// Bird
 ctx.save();
 ctx.translate(bird.x+bird.width/2,bird.y+bird.height/2);
 ctx.rotate(bird.rotation*Math.PI/180);
 ctx.drawImage(birdImg,-bird.width/2,-bird.height/2,bird.width,bird.height);
 ctx.restore();
 
-// Score text
+// Text
 ctx.fillStyle='black';
 ctx.font='25px Arial';
 ctx.fillText('Score: '+score,20,40);
@@ -170,100 +183,34 @@ if(score>highScore){
 highScore=score;
 localStorage.setItem('fluppyHighScore',highScore);
 }
-
-skins.forEach(s=>{
-if(score>=s.unlockScore)skinData[s.name].unlocked=true;
-});
-localStorage.setItem('fluppySkins',JSON.stringify(skinData));
 }
 
 function jump(){
-if(gameStarted&&!gameOver)bird.velocity=-5;
+if(gameStarted&&!gameOver){
+bird.velocity=-5;
+}
 }
 
 document.addEventListener('click',jump);
-document.addEventListener('touchstart',e=>{e.preventDefault();jump();});
+document.addEventListener('touchstart',e=>{
+e.preventDefault();
+jump();
+});
 
-// Buttons
+// ---------------- BUTTONS ----------------
+
 playBtn.addEventListener('click',startGame);
 restartBtn.addEventListener('click',startGame);
+
 homeBtn.addEventListener('click',()=>{
 document.getElementById('titleScreen').style.display='flex';
 restartBtn.style.display='none';
 homeBtn.style.display='none';
 pauseBtn.style.display='none';
 });
+
 pauseBtn.addEventListener('click',()=>{
 paused=!paused;
 if(!paused)update();
-});
-
-// Store
-function renderSkins(){
-skinRow.innerHTML='';
-upperSkinDisplay.innerHTML='';
-
-birdImg.src=selectedSkin.file;
-
-const upperImg=new Image();
-upperImg.src=selectedSkin.file;
-upperImg.style.width='150px';
-upperImg.style.height='150px';
-upperSkinDisplay.appendChild(upperImg);
-
-skins.forEach(s=>{
-const box=document.createElement('div');
-box.className='skinBox';
-
-const img=document.createElement('img');
-img.src=s.file;
-box.appendChild(img);
-
-const name=document.createElement('div');
-name.textContent=s.name;
-box.appendChild(name);
-
-const price=document.createElement('div');
-price.textContent=s.unlockScore+' score';
-box.appendChild(price);
-
-const overlay=document.createElement('div');
-overlay.className='lockOverlay';
-overlay.style.display=skinData[s.name].unlocked?'none':'flex';
-if(!skinData[s.name].unlocked)overlay.textContent='🔒';
-box.appendChild(overlay);
-
-box.addEventListener('click',()=>{
-if(skinData[s.name].unlocked){
-selectedSkin=s;
-birdImg.src=s.file;
-confirmSkinBtn.className='confirmBtn unlocked';
-}else{
-confirmSkinBtn.className='confirmBtn locked';
-}
-renderSkins();
-});
-
-skinRow.appendChild(box);
-});
-}
-
-storeBtn.addEventListener('click',()=>{
-document.getElementById('titleScreen').style.display='none';
-document.getElementById('storeScreen').style.display='flex';
-renderSkins();
-});
-
-backStoreBtn.addEventListener('click',()=>{
-document.getElementById('storeScreen').style.display='none';
-document.getElementById('titleScreen').style.display='flex';
-});
-
-confirmSkinBtn.addEventListener('click',()=>{
-if(confirmSkinBtn.classList.contains('unlocked')){
-localStorage.setItem('selectedSkin',selectedSkin.name);
-document.getElementById('storeScreen').style.display='none';
-document.getElementById('titleScreen').style.display='flex';
-}
 });
 </script>
