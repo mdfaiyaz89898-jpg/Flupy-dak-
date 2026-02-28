@@ -413,8 +413,16 @@ document.addEventListener("touchstart", e=>{ e.preventDefault(); jump(); });
 playBtn.addEventListener("click",()=>{ startGame(); });
 settingsBtnMain.addEventListener("click",()=>{ titleScreen.style.display="none"; settingsScreen.style.display="flex"; });
 backBtn.addEventListener("click",()=>{ settingsScreen.style.display="none"; titleScreen.style.display="flex"; });
-storeBtn.addEventListener("click",()=>{ storeScreen.style.display="flex"; renderSkins(); titleScreen.style.display="none"; });
-backStoreBtn.addEventListener("click",()=>{ storeScreen.style.display="none"; titleScreen.style.display="flex"; });
+storeBtn.addEventListener("click", () => {
+    storeScreen.style.display = "flex";   // open store
+    renderSkins();                        // render skins horizontally
+    titleScreen.style.display = "none";   // hide title
+});
+
+backStoreBtn.addEventListener("click", () => {
+    storeScreen.style.display = "none";   // close store
+    titleScreen.style.display = "flex";   // show title screen
+});
 
 document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
     radio.addEventListener("change",()=>{
