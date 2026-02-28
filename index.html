@@ -173,8 +173,10 @@ pipes.forEach(pipe=>{
   }
 
   if(!pipe.passed && pipe.x + pipe.width < bird.x){
-      score++;
-      pipe.passed = true;
+    score++;
+    pipe.passed = true;
+
+    pipeSpeed += speedIncrement; // 🔥 speed increase
   }
 });
 
