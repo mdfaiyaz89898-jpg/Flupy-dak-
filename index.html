@@ -23,46 +23,103 @@ canvas{ display:block; }
 #settingsScreen h2{ margin-bottom:20px; }
 #settingsScreen .backBtn{ position:absolute; top:10px; left:10px; font-size:25px; background:transparent; color:orange; border:none; cursor:pointer; }
 
+/* Store Screen */
 #storeScreen {
+    position: absolute;       /* full screen overlay */
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;      /* white background */
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
     padding: 20px;
-    overflow-x: hidden; /* horizontal parent scroll disable karna */
+    box-sizing: border-box;
+    overflow: hidden;         /* parent scroll disable */
+    z-index: 10;              /* make sure on top of title/settings */
+}
+
+#storeScreen h2 {
+    margin-bottom: 15px;
+    color: #333;
 }
 
 .skinRow {
     display: flex;
-    flex-direction: row; /* horizontal scroll */
+    flex-direction: row;       /* horizontal scroll */
     align-items: center;
     gap: 15px;
-    margin: 15px 0;
     width: 100%;
-    height: 180px; /* adjust as needed */
-    overflow-x: auto; /* horizontal scroll */
-    overflow-y: hidden; /* no vertical scroll */
-    padding: 10px 20px;
-    flex-shrink: 0;
+    max-width: 100%;           /* prevent overflow */
+    height: 180px;             /* adjust as needed */
+    overflow-x: auto;          /* horizontal scroll */
+    overflow-y: hidden;        /* no vertical scroll */
+    padding: 10px 5px;
+    box-sizing: border-box;
     scroll-behavior: smooth;
-    white-space: nowrap; /* horizontal scroll fix */
 }
+
+.skinRow::-webkit-scrollbar {
+    height: 8px;
+}
+
+.skinRow::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.skinRow::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
 .skinBox {
-    min-width: 130px; /* horizontal scroll items width */
+    min-width: 130px;          /* width for horizontal scroll */
     flex-shrink: 0;
+    position: relative;
+    text-align: center;
 }
-.skinBox img{ width:100px; height:100px; border-radius:10px; }
-.lockOverlay{ position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:30px; }
-.confirmBtn{ padding:6px 20px; font-size:16px; border:none; border-radius:6px; cursor:pointer; margin-top:5px; font-weight:bold; }
-    #storeScreen {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 0;
-    height: 100%;
-    }
-.confirmBtn.locked{ background:grey; color:white; cursor:not-allowed; }
-.confirmBtn.unlocked{ background:green; color:white; }
+
+.skinBox img {
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
+}
+
+.lockOverlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 30px;
+}
+
+.confirmBtn {
+    padding: 6px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.confirmBtn.locked {
+    background: grey;
+    color: white;
+    cursor: not-allowed;
+}
+
+.confirmBtn.unlocked {
+    background: green;
+    color: white;
+}
 
 /* In-Game UI */
 #pauseBtn, #restartBtn, #homeBtn{ position:absolute; top:10px; padding:8px 12px; border:none; border-radius:8px; font-size:16px; cursor:pointer; font-weight:bold; }
