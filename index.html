@@ -55,10 +55,12 @@ const upperSkinDisplay=document.getElementById('upperSkinDisplay');
 // --- Game variables ---
 let bird, gravity, pipes=[], score=0, gameOver=false, paused=false, gameStarted=false;
 
-// ✅ Set default difficulty and pipe speed
-let difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
-const difficultySpeeds = {"Very Easy":3,"Normal":5,"Hard":7};
-let pipeSpeed = difficultySpeeds[difficulty];
+// --- Game variables ---
+let bird, gravity, pipes=[], score=0, gameOver=false, paused=false, gameStarted=false;
+
+// Base speed (Very Easy se start)
+let pipeSpeed = 3;
+let speedIncrement = 0.1; // har score ke baad 0.1 increase
 
 let highScore = parseInt(localStorage.getItem('fluppyHighScore')) || 0;
   
