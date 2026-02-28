@@ -153,11 +153,11 @@ const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
 
 // Skins
 let skins = [
-  {name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png", unlockScore:0},
-  {name:"Mango Bird", file:"Picsart_26-02-27_01-28-33-302.png", unlockScore:10},
-  {name:"Happy Perrot", file:"Picsart_26-02-27_10-16-34-761.png", unlockScore:20},
-  {name:"Angry Bird", file:"Picsart_26-02-27_10-15-45-688.png", unlockScore:30},
-  {name:"Crow", file:"Picsart_26-02-27_20-37-59-368.png", unlockScore:50}
+  {name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png", unlockScore:0, pipeColor:"#00c853", groundColor:"#8B4513"},
+  {name:"Mango Bird", file:"Picsart_26-02-27_01-28-33-302.png", unlockScore:10, pipeColor:"#FFA500", groundColor:"#FFCC80"},
+  {name:"Happy Perrot", file:"Picsart_26-02-27_10-16-34-761.png", unlockScore:20, pipeColor:"#ff4081", groundColor:"#f48fb1"},
+  {name:"Angry Bird", file:"Picsart_26-02-27_10-15-45-688.png", unlockScore:30, pipeColor:"#ff1744", groundColor:"#d50000"},
+  {name:"Crow", file:"Picsart_26-02-27_20-37-59-368.png", unlockScore:50, pipeColor:"#333333", groundColor:"#555555"}
 ];
 
 let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
@@ -254,42 +254,101 @@ function endGame(){
     localStorage.setItem("fluppySkins", JSON.stringify(skinData));
 }
 
-function update(){
-    if(!gameStarted || gameOver || paused) return;
+function update() {
+    if (!gameStarted || gameOver || paused) return;
 
+    // Bird physics
     bird.velocity += gravity;
     bird.y += bird.velocity;
-    bird.rotation = Math.min(bird.velocity*5,25);
+    bird.rotation = Math.min(bird.velocity * 5, 25);
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const birdImgObj = new Image();
-    birdImgObj.src = selectedSkin.file;
-    ctx.save();
-    ctx.translate(bird.x+bird.width/2,bird.y+bird.height/2);
-    ctx.rotate(bird.rotation*Math.PI/180);
-    ctx.drawImage(birdImgObj,-bird.width/2,-bird.height/2,bird.width,bird.height);
-    ctx.restore();
+    // Background draw karo
+if(Math.floor(score / 5) % 2 === 0){
+    // Day
+    ctx.fillStyle = "skyblue";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    pipes.forEach(pipe=>{
+    // Sun
+    ctx.fillStyle = "yellow";
+    ctx.beginPath();
+    ctx.arc(canvas.width - 100, 100, 50, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cloud / ghar placeholder
+    ctx.fillStyle = "white";
+ctx.beginPath();
+ctx.arc(80, canvas.height - 100, 30, Math.PI * 0.5, Math.PI * 1.5); // left puff
+ctx.arc(120, canvas.height - 120, 40, Math.PI, Math.PI * 2);         // top puff
+ctx.arc(160, canvas.height - 100, 30, Math.PI * 1.5, Math.PI * 0.5); // right puff
+ctx.closePath();
+ctx.fill(); // simple cloud rectangle
+} else {
+    // Night
+    ctx.fillStyle = "#1a1a2e"; // dark night color
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Stars
+    ctx.fillStyle = "white";
+    for(let i=0; i<50; i++){
+        ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height/2, 2, 2);
+    }
+
+    // Moon
+    ctx.fillStyle = "#ffffcc";
+    ctx.beginPath();
+    ctx.arc(canvas.width - 100, 100, 40, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+    // Draw pipes with skin-based color
+    pipes.forEach(pipe => {
         pipe.x -= pipeSpeed;
-        ctx.fillStyle="#00c853";
-        ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
-        ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
 
-        if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top || bird.y+bird.height>canvas.height-pipe.bottom)){
+        // Pipe color based on selected skin
+        ctx.fillStyle = selectedSkin.pipeColor;
+        ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
+        ctx.fillRect(pipe.x, canvas.height - pipe.bottom, pipe.width, pipe.bottom);
+
+        // Collision detection
+        if (
+            bird.x < pipe.x + pipe.width &&
+            bird.x + bird.width > pipe.x &&
+            (bird.y < pipe.top || bird.y + bird.height > canvas.height - pipe.bottom)
+        ) {
             endGame();
         }
 
-        if(!pipe.passed && pipe.x+pipe.width<bird.x){ score++; pipe.passed=true;}
+        // Score
+        if (!pipe.passed && pipe.x + pipe.width < bird.x) {
+            score++;
+            pipe.passed = true;
+        }
     });
 
-    if(bird.y+bird.height>canvas.height || bird.y<0) endGame();
+    // Draw ground with skin-based color
+    const groundHeight = 50; // Ground height
+    ctx.fillStyle = selectedSkin.groundColor;
+    ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
 
-    ctx.fillStyle="black"; ctx.font="25px Arial";
-    ctx.fillText("Score: "+score,20,40);
-    ctx.fillText("High Score: "+highScore,20,70);
+    // Draw bird
+    const birdImgObj = new Image();
+    birdImgObj.src = selectedSkin.file;
+    ctx.save();
+    ctx.translate(bird.x + bird.width / 2, bird.y + bird.height / 2);
+    ctx.rotate(bird.rotation * Math.PI / 180);
+    ctx.drawImage(birdImgObj, -bird.width / 2, -bird.height / 2, bird.width, bird.height);
+    ctx.restore();
 
+    // UI: Score & High Score
+    ctx.fillStyle = "black";
+    ctx.font = "25px Arial";
+    ctx.fillText("Score: " + score, 20, 40);
+    ctx.fillText("High Score: " + highScore, 20, 70);
+
+    // Continue updating
     requestAnimationFrame(update);
 }
 
