@@ -37,10 +37,10 @@ canvas{ display:block; }
 .backStoreBtn { position: absolute; top: 10px; left: 10px; font-size: 30px; background: transparent; color: orange; border: none; cursor: pointer; z-index: 20; }
 
 /* In-Game UI */
-#pauseBtn, #restartBtn, #homeBtn{ position:absolute; top:10px; padding:8px 12px; border:none; border-radius:8px; font-size:16px; cursor:pointer; font-weight:bold; }
-#pauseBtn{ right:10px; display:none; background:#ccc; color:#333; }
-#restartBtn{ display:none; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(45deg,#ff5722,#e64a19); color:white; box-shadow:3px 3px 0 #b71c1c;}
-#homeBtn{ display:none; top:50%; left:50%; transform:translate(-50%,70%); background:linear-gradient(45deg,#03a9f4,#0288d1); color:white; box-shadow:3px 3px 0 #01579b;}
+#pauseBtn, #restartBtn, #homeBtn{ position:absolute; padding:8px 12px; border:none; border-radius:8px; font-size:16px; cursor:pointer; font-weight:bold; }
+#pauseBtn{ right:10px; top:10px; display:none; background:#ccc; color:#333; }
+#restartBtn{ display:none; background:linear-gradient(45deg,#ff5722,#e64a19); color:white; box-shadow:3px 3px 0 #b71c1c;}
+#homeBtn{ display:none; background:linear-gradient(45deg,#03a9f4,#0288d1); color:white; box-shadow:3px 3px 0 #01579b;}
 
 /* Made by */
 #madeBy{ position:absolute; bottom:10px; left:10px; font-size:14px; }
@@ -101,10 +101,11 @@ const confirmSkinBtn = document.getElementById("confirmSkinBtn");
 const upperSkinDisplay = document.getElementById("upperSkinDisplay");
 const skinRow = document.getElementById("skinRow");
 
-let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty, lastPipeX;
+let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty, lastPipeX, pipeGap;
 highScore = localStorage.getItem("fluppyHighScore") || 0;
 difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
 pipeSpeed = 2;
+pipeGap = 280;
 lastPipeX = 0;
 
 // Skins
@@ -117,9 +118,7 @@ let skins = [
 ];
 
 let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
-skins.forEach(s=>{
-    if(!skinData[s.name]) skinData[s.name]={unlocked: s.unlockScore===0};
-});
+skins.forEach(s=>{ if(!skinData[s.name]) skinData[s.name]={unlocked:s.unlockScore===0}; });
 let selectedSkinName = localStorage.getItem("selectedSkin") || "Bird";
 let selectedSkin = skins.find(s=>s.name===selectedSkinName);
 
@@ -130,182 +129,101 @@ function initGame(){
     score = 0;
     gameOver = false;
     paused = false;
-    pipeSpeed = difficulty === "Very Easy" ? 2 : difficulty === "Normal" ? 4 : 6;
     lastPipeX = 0;
+    pipeGap = difficulty==="Very Easy"?280:difficulty==="Normal"?200:150;
     document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
 }
 
-function createPipe() {
-    let gap = difficulty === "Very Easy" ? 280 : difficulty === "Normal" ? 200 : 150;
-    const topHeight = Math.random() * (canvas.height - gap - 100) + 50;
-    const pipeX = pipes.length ? lastPipeX + 300 : canvas.width;
-
-    pipes.push({
-        x: pipeX,
-        width: 60,
-        top: topHeight,
-        bottom: canvas.height - topHeight - gap,
-        passed: false
-    });
-
+// Create pipes
+function createPipe(){
+    const topHeight = Math.random()*(canvas.height-pipeGap-100)+50;
+    const pipeX = pipes.length? lastPipeX + 300 : canvas.width;
+    pipes.push({x:pipeX,width:60,top:topHeight,bottom:canvas.height-topHeight-pipeGap,passed:false});
     lastPipeX = pipeX;
 }
 
-function update() {
-    if (!gameStarted || gameOver) return;
+// Update function
+function update(){
+    if(!gameStarted||gameOver) return;
 
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // Bird physics
-    if(!paused){
-        bird.velocity += gravity;
-        bird.y += bird.velocity;
-        bird.rotation = Math.min(bird.velocity * 5,25);
-    }
+    if(!paused){ bird.velocity+=gravity; bird.y+=bird.velocity; bird.rotation=Math.min(bird.velocity*5,25); }
 
-    // Background
-    if(Math.floor(score/5)%2===0){
-        ctx.fillStyle = "skyblue";
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle="yellow";
-        ctx.beginPath();
-        ctx.arc(canvas.width-100,100,50,0,Math.PI*2);
-        ctx.fill();
-        ctx.fillStyle="white";
-        ctx.beginPath();
-        ctx.arc(80,canvas.height-100,30,Math.PI*0.5,Math.PI*1.5);
-        ctx.arc(120,canvas.height-120,40,Math.PI,Math.PI*2);
-        ctx.arc(160,canvas.height-100,30,Math.PI*1.5,Math.PI*0.5);
-        ctx.closePath(); ctx.fill();
-    } else {
-        ctx.fillStyle="#1a1a2e"; ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle="white";
-        for(let i=0;i<50;i++){ ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height/2,2,2); }
-        ctx.fillStyle="#ffffcc"; ctx.beginPath(); ctx.arc(canvas.width-100,100,40,0,Math.PI*2); ctx.fill();
-    }
+    // Background day/night
+    if(Math.floor(score/5)%2===0){ ctx.fillStyle="skyblue"; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(canvas.width-100,100,50,0,Math.PI*2); ctx.fill(); ctx.fillStyle="white"; ctx.beginPath(); ctx.arc(80,canvas.height-100,30,Math.PI*0.5,Math.PI*1.5); ctx.arc(120,canvas.height-120,40,Math.PI,Math.PI*2); ctx.arc(160,canvas.height-100,30,Math.PI*1.5,Math.PI*0.5); ctx.closePath(); ctx.fill(); }
+    else { ctx.fillStyle="#1a1a2e"; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle="white"; for(let i=0;i<50;i++) ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height/2,2,2); ctx.fillStyle="#ffffcc"; ctx.beginPath(); ctx.arc(canvas.width-100,100,40,0,Math.PI*2); ctx.fill(); }
 
     // Pipes
-    pipes.forEach(pipe=>{
-        if(!paused) pipe.x -= pipeSpeed;
-        ctx.fillStyle = selectedSkin.pipeColor;
-        ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
-        ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
+    pipes.forEach(pipe=>{ if(!paused) pipe.x-=pipeSpeed; ctx.fillStyle=selectedSkin.pipeColor; ctx.fillRect(pipe.x,0,pipe.width,pipe.top); ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom); if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top||bird.y+bird.height>canvas.height-pipe.bottom)) endGame(); if(!pipe.passed && pipe.x+pipe.width<bird.x){ score++; pipe.passed=true; } });
 
-        if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top || bird.y+bird.height>canvas.height-pipe.bottom)){
-            endGame();
-        }
-
-        if(!pipe.passed && pipe.x+pipe.width<bird.x){ score++; pipe.passed=true; }
-    });
-
-    // Remove off-screen pipes
     if(!paused) pipes = pipes.filter(pipe=>pipe.x+pipe.width>0);
-
-    // Spawn new pipe
-    if(!paused && (pipes.length===0 || lastPipeX < canvas.width)) createPipe();
+    if(!paused && (pipes.length===0||lastPipeX<canvas.width)) createPipe();
 
     // Ground
-    const groundHeight=50; ctx.fillStyle=selectedSkin.groundColor;
-    ctx.fillRect(0,canvas.height-groundHeight,canvas.width,groundHeight);
+    ctx.fillStyle=selectedSkin.groundColor; ctx.fillRect(0,canvas.height-50,canvas.width,50);
 
     // Bird
-    const birdImgObj = new Image();
-    birdImgObj.src = selectedSkin.file;
-    ctx.save(); ctx.translate(bird.x+bird.width/2,bird.y+bird.height/2);
-    ctx.rotate(bird.rotation*Math.PI/180);
-    ctx.drawImage(birdImgObj,-bird.width/2,-bird.height/2,bird.width,bird.height);
-    ctx.restore();
+    const birdImg=new Image(); birdImg.src=selectedSkin.file; ctx.save(); ctx.translate(bird.x+bird.width/2,bird.y+bird.height/2); ctx.rotate(bird.rotation*Math.PI/180); ctx.drawImage(birdImg,-bird.width/2,-bird.height/2,bird.width,bird.height); ctx.restore();
 
-    // Score UI
-    ctx.fillStyle="black"; ctx.font="25px Arial";
-    ctx.fillText("Score: "+score,20,40);
-    ctx.fillText("High Score: "+highScore,20,70);
+    // Score
+    ctx.fillStyle="black"; ctx.font="25px Arial"; ctx.fillText("Score: "+score,20,40); ctx.fillText("High Score: "+highScore,20,70);
 
     requestAnimationFrame(update);
 }
 
-function jump(){ if(gameStarted && !gameOver) bird.velocity=-5; }
-document.addEventListener("click", jump);
-document.addEventListener("touchstart", e=>{ e.preventDefault(); jump(); });
+// Jump
+function jump(){ if(gameStarted&&!gameOver) bird.velocity=-5; }
+document.addEventListener("click",jump);
+document.addEventListener("touchstart",e=>{ e.preventDefault(); jump(); });
 
+// Buttons
 playBtn.addEventListener("click",()=>{ startGame(); });
 settingsBtnMain.addEventListener("click",()=>{ titleScreen.style.display="none"; settingsScreen.style.display="flex"; });
 backBtn.addEventListener("click",()=>{ settingsScreen.style.display="none"; titleScreen.style.display="flex"; });
 storeBtn.addEventListener("click",()=>{ storeScreen.style.display="flex"; renderSkins(); titleScreen.style.display="none"; });
 backStoreBtn.addEventListener("click",()=>{ storeScreen.style.display="none"; titleScreen.style.display="flex"; });
+document.querySelectorAll('input[name="difficulty"]').forEach(r=>{ r.addEventListener("change",()=>{ difficulty=r.value; pipeGap = difficulty==="Very Easy"?280:difficulty==="Normal"?200:150; localStorage.setItem("fluppyDifficulty",difficulty); }); });
 
-document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
-    radio.addEventListener("change",()=>{
-        difficulty = radio.value;
-        pipeSpeed = difficulty==="Very Easy"?2:difficulty==="Normal"?4:6;
-        localStorage.setItem("fluppyDifficulty",difficulty);
-    });
-});
-
+// Skins
 function renderSkins(){
-    skinRow.innerHTML="";
-    upperSkinDisplay.innerHTML="";
-    const upperImg = new Image();
-    upperImg.src = selectedSkin.file;
-    upperImg.style.width="150px"; upperImg.style.height="150px";
-    upperSkinDisplay.appendChild(upperImg);
-
+    skinRow.innerHTML=""; upperSkinDisplay.innerHTML="";
+    const upperImg=new Image(); upperImg.src=selectedSkin.file; upperImg.style.width="150px"; upperImg.style.height="150px"; upperSkinDisplay.appendChild(upperImg);
     skins.forEach(s=>{
-        const box = document.createElement("div"); box.className="skinBox";
-        const img = document.createElement("img"); img.src=s.file; box.appendChild(img);
-        const name = document.createElement("div"); name.textContent=s.name; box.appendChild(name);
-        const price = document.createElement("div"); price.textContent=s.unlockScore+" score"; box.appendChild(price);
-        const overlay = document.createElement("div"); overlay.className="lockOverlay";
-        if(skinData[s.name].unlocked) overlay.style.display="none"; else overlay.textContent="🔒";
-        box.appendChild(overlay);
-        box.addEventListener("click",()=>{
-            if(skinData[s.name].unlocked){ selectedSkin=s; confirmSkinBtn.className="confirmBtn unlocked"; }
-            else { confirmSkinBtn.className="confirmBtn locked"; }
-            renderSkins();
-        });
+        const box=document.createElement("div"); box.className="skinBox";
+        const img=document.createElement("img"); img.src=s.file; box.appendChild(img);
+        const name=document.createElement("div"); name.textContent=s.name; box.appendChild(name);
+        const price=document.createElement("div"); price.textContent=s.unlockScore+" score"; box.appendChild(price);
+        const overlay=document.createElement("div"); overlay.className="lockOverlay"; if(skinData[s.name].unlocked) overlay.style.display="none"; else overlay.textContent="🔒"; box.appendChild(overlay);
+        box.addEventListener("click",()=>{ if(skinData[s.name].unlocked){ selectedSkin=s; confirmSkinBtn.className="confirmBtn unlocked"; } else confirmSkinBtn.className="confirmBtn locked"; renderSkins(); });
         skinRow.appendChild(box);
     });
-
-    if(skinData[selectedSkin.name].unlocked){ confirmSkinBtn.className="confirmBtn unlocked"; } 
-    else { confirmSkinBtn.className="confirmBtn locked"; }
+    if(skinData[selectedSkin.name].unlocked) confirmSkinBtn.className="confirmBtn unlocked"; else confirmSkinBtn.className="confirmBtn locked";
 }
+confirmSkinBtn.addEventListener("click",()=>{ if(confirmSkinBtn.classList.contains("unlocked")){ localStorage.setItem("selectedSkin",selectedSkin.name); storeScreen.style.display="none"; titleScreen.style.display="flex"; }});
 
-confirmSkinBtn.addEventListener("click",()=>{
-    if(confirmSkinBtn.classList.contains("unlocked")){
-        localStorage.setItem("selectedSkin",selectedSkin.name);
-        storeScreen.style.display="none";
-        titleScreen.style.display="flex";
-    }
-});
+// Pause
+pauseBtn.addEventListener("click",()=>{ paused=!paused; pauseBtn.innerHTML=paused?"▶":"⏸"; });
 
-pauseBtn.addEventListener("click", () => {
-    paused = !paused;
-    pauseBtn.innerHTML = paused ? "▶" : " ";
-});
-
+// Restart & Home
 restartBtn.addEventListener("click",()=>{ startGame(); });
 homeBtn.addEventListener("click",()=>{ titleScreen.style.display="flex"; restartBtn.style.display="none"; homeBtn.style.display="none"; pauseBtn.style.display="none"; });
 
+// Start game
 function startGame(){
     initGame();
-    titleScreen.style.display="none";
-    pauseBtn.style.display="block";
-    gameStarted=true;
-    createPipe();
-    update();
+    titleScreen.style.display="none"; pauseBtn.style.display="block"; restartBtn.style.display="none"; homeBtn.style.display="none"; gameStarted=true;
+    createPipe(); update();
 }
 
+// End game
 function endGame(){
-    gameOver=true;
-    pauseBtn.style.display="none";
-    restartBtn.style.display="block";
-    homeBtn.style.display="block";
+    gameOver=true; pauseBtn.style.display="none"; restartBtn.style.display="block"; homeBtn.style.display="block";
+    restartBtn.style.top = "50%"; restartBtn.style.left = "50%"; restartBtn.style.transform = "translate(-50%,-50%)";
+    homeBtn.style.top = "60%"; homeBtn.style.left = "50%"; homeBtn.style.transform = "translate(-50%,-50%)";
 
     if(score>highScore){ highScore=score; localStorage.setItem("fluppyHighScore",highScore); }
-
-    skins.forEach(s=>{
-        if(score>=s.unlockScore){ skinData[s.name].unlocked=true; }
-    });
+    skins.forEach(s=>{ if(score>=s.unlockScore) skinData[s.name].unlocked=true; });
     localStorage.setItem("fluppySkins",JSON.stringify(skinData));
 }
 </script>
