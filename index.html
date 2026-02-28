@@ -85,7 +85,10 @@ canvas{ display:block; }
 /* In-Game UI */
 #pauseBtn, #restartBtn, #homeBtn{ position:absolute; top:10px; padding:8px 12px; border:none; border-radius:8px; font-size:16px; cursor:pointer; font-weight:bold; }
 #pauseBtn{ right:10px; display:none; background:#ccc; color:#333; }
-#pauseBtn::after{ content:"⏸️"; font-size:18px; }
+#pauseBtn::after{
+  content: attr(data-icon);
+  font-size:18px;
+}
 #restartBtn{ display:none; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(45deg,#ff5722,#e64a19); color:white; box-shadow:3px 3px 0 #b71c1c;}
 #homeBtn{ display:none; top:50%; left:50%; transform:translate(-50%,70%); background:linear-gradient(45deg,#03a9f4,#0288d1); color:white; box-shadow:3px 3px 0 #01579b;}
 
@@ -433,12 +436,13 @@ pauseBtn.addEventListener("click", () => {
 
     if (paused) {
         clearInterval(pipeInterval);
-        pauseBtn.innerHTML = "▶";
+        pauseBtn.setAttribute("data-icon", "▶");
     } else {
         pipeInterval = setInterval(createPipe, 2000);
-        pauseBtn.innerHTML = "";
+        pauseBtn.setAttribute("data-icon", "⏸");
         update();
     }
+
 });
 restartBtn.addEventListener("click",()=>{ startGame(); });
 homeBtn.addEventListener("click",()=>{ titleScreen.style.display="flex"; restartBtn.style.display="none"; homeBtn.style.display="none"; pauseBtn.style.display="none"; });
