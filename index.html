@@ -56,6 +56,15 @@ const upperSkinDisplay=document.getElementById('upperSkinDisplay');
 let bird, gravity, pipes=[], score=0, gameOver=false, paused=false, pipeSpeed=5, difficulty='Normal', gameStarted=false;
 const difficultySpeeds={"Very Easy":3,"Normal":5,"Hard":7};
 let highScore=parseInt(localStorage.getItem('fluppyHighScore'))||0;
+  
+  // ⭐ Stars array for night mode
+let stars = [];
+for(let i = 0; i < 50; i++){
+    stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * (canvas.height / 2)
+    });
+  }
 
 // Skins
 let skins=[
@@ -102,8 +111,42 @@ function update(){
   bird.velocity+=gravity; bird.y+=bird.velocity; bird.rotation=Math.min(bird.velocity*5,25);
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle=Math.floor(score/5)%2===0?'skyblue':'#1a1a2e';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+  // --- Background ---
+if(Math.floor(score/5) % 2 === 0){
+    // Day
+    ctx.fillStyle = "skyblue";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Sun
+    ctx.fillStyle = "yellow";
+    ctx.beginPath();
+    ctx.arc(canvas.width - 100, 100, 50, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Clouds
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(80, canvas.height - 100, 30, Math.PI * 0.5, Math.PI * 1.5);
+    ctx.arc(120, canvas.height - 120, 40, Math.PI, Math.PI * 2);
+    ctx.arc(160, canvas.height - 100, 30, Math.PI * 1.5, Math.PI * 0.5);
+    ctx.closePath();
+    ctx.fill();
+
+} else {
+    // Night
+    ctx.fillStyle = "#1a1a2e";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Stars
+    ctx.fillStyle = "white";
+    stars.forEach(s => ctx.fillRect(s.x, s.y, 2, 2));
+
+    // Moon
+    ctx.fillStyle = "#ffffcc";
+    ctx.beginPath();
+    ctx.arc(canvas.width - 100, 100, 40, 0, Math.PI * 2);
+    ctx.fill();
+}
 
   // Pipes
 const minPipeDistance = 300; // pipe ka minimum gap, adjust kar sakte ho
