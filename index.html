@@ -205,7 +205,8 @@ difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
 pipeSpeed = 2;
 const difficultySpeeds = { "Very Easy":2, "Normal":4, "Hard":6 };
   
-  let pipeGap = 280; // default gap
+  let lastPipeX = 0;  // last pipe ka x position
+let pipeGap = (difficulty === "Very Easy") ? 280 : (difficulty === "Normal") ? 200 : 150;
 
 // Skins
 let skins = [
