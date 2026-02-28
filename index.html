@@ -23,50 +23,32 @@ canvas{ display:block; }
 #settingsScreen h2{ margin-bottom:20px; }
 #settingsScreen .backBtn{ position:absolute; top:10px; left:10px; font-size:25px; background:transparent; color:orange; border:none; cursor:pointer; }
 
-/* Store Screen */
-#storeScreen{ background:#d0f0f0; display:none; flex-direction:column; justify-content:flex-start; padding-top:40px; width:100%; height:100%; }
-#storeScreen h2{ font-size:32px; margin-bottom:20px; color:#333;}
-#storeScreen .backStoreBtn{ position:absolute; top:10px; left:10px; font-size:30px; background:transparent; color:orange; border:none; cursor:pointer; }
-.skinRow {
-    display: flex;
-    flex-direction: column; /* vertical list */
-    align-items: center;
-    margin: 15px 0;
-    height: 50%;            /* jitna screen me dikhe */
-    overflow-y: auto;        /* vertical scroll enable */
-    padding-right: 10px;     /* scrollbar ke liye space */
+#storeScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow-x: hidden; /* horizontal parent scroll disable karna */
 }
 
-/* Optional: custom scrollbar */
 .skinRow {
-    display: flex;
-    flex-direction: row;      /* horizontal */
-    align-items: center;
-    gap: 15px;
-    margin: 15px 0;
-    width: 100%;
-    height: 200px;            /* fixed height */
-    overflow-x: auto;         /* horizontal scroll */
-    overflow-y: hidden;       /* no vertical scroll */
-    padding: 10px 20px;
-    box-sizing: border-box;
-    scroll-behavior: smooth;
-}
-
-/* scrollbar horizontal */
-.skinRow::-webkit-scrollbar {
-    height: 8px;
-}
-.skinRow::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-}
-.skinRow::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    display: flex;
+    flex-direction: row; /* horizontal scroll */
+    align-items: center;
+    gap: 15px;
+    margin: 15px 0;
+    width: 100%;
+    height: 180px; /* adjust as needed */
+    overflow-x: auto; /* horizontal scroll */
+    overflow-y: hidden; /* no vertical scroll */
+    padding: 10px 20px;
+    flex-shrink: 0;
+    scroll-behavior: smooth;
+    white-space: nowrap; /* horizontal scroll fix */
 }
 .skinBox {
-    min-width: 130px;   /* important for horizontal scroll */
-    flex-shrink: 0;     /* prevents squeeze */
+    min-width: 130px; /* horizontal scroll items width */
+    flex-shrink: 0;
 }
 .skinBox img{ width:100px; height:100px; border-radius:10px; }
 .lockOverlay{ position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:30px; }
