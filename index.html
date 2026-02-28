@@ -193,6 +193,7 @@ function createPipe(){
 
 let pipeInterval;
 function startGame(){
+    clearInterval(pipeInterval);
     titleScreen.style.display="none";
     settingsScreen.style.display="none";
     storeScreen.style.display="none";
@@ -426,7 +427,17 @@ confirmSkinBtn.addEventListener("click",()=>{
     }
 });
 
-pauseBtn.addEventListener("click",()=>{ paused=!paused; if(!paused) update(); });
+pauseBtn.addEventListener("click", () => {
+
+    paused = !paused;
+
+    if (paused) {
+        clearInterval(pipeInterval);   // Stop pipe spawning
+    } else {
+        pipeInterval = setInterval(createPipe, 2000);  // Resume pipe spawning
+        update();   // Restart animation
+    }
+});
 restartBtn.addEventListener("click",()=>{ startGame(); });
 homeBtn.addEventListener("click",()=>{ titleScreen.style.display="flex"; restartBtn.style.display="none"; homeBtn.style.display="none"; pauseBtn.style.display="none"; });
 </script>
