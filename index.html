@@ -78,9 +78,16 @@ function initGame(){
   document.querySelector(`input[name='difficulty'][value='${difficulty}']`).checked=true;
 }
 function createPipe(){
-  let gap=difficulty==='Very Easy'?280:difficulty==='Normal'?200:150;
-  const topHeight=Math.random()*(canvas.height-gap-100)+50;
-  pipes.push({x:canvas.width,width:60,top:topHeight,bottom:canvas.height-topHeight-gap,passed:false});
+    let gap;
+    if(difficulty === "Very Easy") gap = 280;
+    else if(difficulty === "Normal") gap = 220;
+    else gap = 180;
+
+    const topHeight = Math.random() * (canvas.height - gap - 100) + 50;
+    const pipeX = canvas.width;
+    const pipeWidth = 70; // adjust kar sakte ho
+
+    pipes.push({x:pipeX, width:pipeWidth, top:topHeight, bottom:canvas.height - topHeight - gap, passed:false});
 }
 function startGame(){
   document.getElementById('titleScreen').style.display='none';
@@ -99,15 +106,27 @@ function update(){
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
   // Pipes
-  if(pipes.length===0||pipes[pipes.length-1].x<canvas.width-200) createPipe();
-  pipes.forEach(pipe=>{
-    pipe.x-=pipeSpeed;
-    ctx.fillStyle=selectedSkin.pipeColor;
-    ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
-    ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
-    if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top||bird.y+bird.height>canvas.height-pipe.bottom)) endGame();
-    if(!pipe.passed && pipe.x+pipe.width<bird.x){score++;pipe.passed=true;}
-  });
+const minPipeDistance = 300; // pipe ka minimum gap, adjust kar sakte ho
+if(pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - minPipeDistance){
+    createPipe();
+}
+
+pipes.forEach(pipe=>{
+  pipe.x -= pipeSpeed;
+  ctx.fillStyle = selectedSkin.pipeColor;
+  ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
+  ctx.fillRect(pipe.x, canvas.height - pipe.bottom, pipe.width, pipe.bottom);
+  
+  if(bird.x < pipe.x + pipe.width && bird.x + bird.width > pipe.x &&
+     (bird.y < pipe.top || bird.y + bird.height > canvas.height - pipe.bottom)) {
+      endGame();
+  }
+
+  if(!pipe.passed && pipe.x + pipe.width < bird.x){
+      score++;
+      pipe.passed = true;
+  }
+});
 
   // Ground
   const groundHeight=50; ctx.fillStyle=selectedSkin.groundColor; ctx.fillRect(0,canvas.height-groundHeight,canvas.width,groundHeight);
