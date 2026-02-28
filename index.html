@@ -433,10 +433,10 @@ pauseBtn.addEventListener("click", () => {
 
     if (paused) {
         clearInterval(pipeInterval);
-        pauseBtn.innerHTML = "⏯️";
+        pauseBtn.innerHTML = "▶";
     } else {
         pipeInterval = setInterval(createPipe, 2000);
-        pauseBtn.innerHTML = "⏸️";
+        pauseBtn.innerHTML = " ";
         update();
     }
 });
