@@ -432,10 +432,12 @@ pauseBtn.addEventListener("click", () => {
     paused = !paused;
 
     if (paused) {
-        clearInterval(pipeInterval);   // Stop pipe spawning
+        clearInterval(pipeInterval);
+        pauseBtn.textContent = "▶";   // play icon
     } else {
-        pipeInterval = setInterval(createPipe, 2000);  // Resume pipe spawning
-        update();   // Restart animation
+        pipeInterval = setInterval(createPipe, 2000);
+        pauseBtn.textContent = "⏸";   // pause icon
+        update();
     }
 });
 restartBtn.addEventListener("click",()=>{ startGame(); });
