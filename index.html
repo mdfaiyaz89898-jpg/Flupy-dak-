@@ -112,7 +112,7 @@ function startGame(){
   document.getElementById('settingsScreen').style.display='none';
   document.getElementById('storeScreen').style.display='none';
   pauseBtn.style.display='block'; restartBtn.style.display='none'; homeBtn.style.display='none';
-  initGame(); gameStarted=true; update();
+  initGame();pipeSpeed = baseSpeed; // reset speed to 1.5 gameStarted=true; update();
 }
 
 function update(){
