@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Fluppy Bird Fixed</title>
+<title>Fluppy Bird Fixed v2</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{ margin:0; overflow:hidden; font-family:Arial; background:skyblue;}
@@ -30,7 +30,7 @@ canvas{ display:block; }
 .confirmBtn.unlocked { background: green; color: white; }
 .backStoreBtn { position: absolute; top: 10px; left: 10px; font-size: 30px; background: transparent; color: orange; border: none; cursor: pointer; z-index: 20; }
 #pauseBtn, #restartBtn, #homeBtn{ position:absolute; top:10px; padding:8px 12px; border:none; border-radius:8px; font-size:16px; cursor:pointer; font-weight:bold; }
-#pauseBtn{ right:10px; display:none; background:#ccc; color:#333; }
+#pauseBtn{ right:10px; display:none; background:#ccc; color:#333; font-weight:bold; font-size:16px; }
 #restartBtn{ display:none; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(45deg,#ff5722,#e64a19); color:white; box-shadow:3px 3px 0 #b71c1c;}
 #homeBtn{ display:none; top:50%; left:50%; transform:translate(-50%,70%); background:linear-gradient(45deg,#03a9f4,#0288d1); color:white; box-shadow:3px 3px 0 #01579b;}
 #madeBy{ position:absolute; bottom:10px; left:10px; font-size:14px; }
@@ -60,10 +60,11 @@ canvas{ display:block; }
     <button id="confirmSkinBtn" class="confirmBtn locked">Confirm</button>
 </div>
 <canvas id="gameCanvas"></canvas>
-<button id="pauseBtn">⏸️</button>
+<button id="pauseBtn">⏸</button>
 <button id="restartBtn">Restart</button>
 <button id="homeBtn">Home</button>
 <div id="madeBy">Made by TrollHunter</div>
+
 <script>
 const canvas=document.getElementById("gameCanvas");
 const ctx=canvas.getContext("2d");
@@ -87,7 +88,8 @@ let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeS
 highScore = localStorage.getItem("fluppyHighScore") || 0;
 difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
 pipeSpeed = 2;
-let pipeGap = 280;
+const fixedPipeInterval = 3000; // fixed spawn
+let lastPipeTime = 0;
 
 let skins=[
 {name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png", unlockScore:0, pipeColor:"#00c853", groundColor:"#8B4513"},
@@ -110,6 +112,7 @@ function initGame(){
     gameOver=false;
     paused=false;
     pipeSpeed=1.5;
+    lastPipeTime=0;
     document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked=true;
 }
 
@@ -129,7 +132,19 @@ function startGame(){
     restartBtn.style.display="none";
     homeBtn.style.display="none";
     gameStarted=true;
-    update();
+
+    // Countdown overlay
+    let countdown=["3","2","1","Go!"];
+    let idx=0;
+    const overlay=document.createElement("div");
+    overlay.style.position="absolute"; overlay.style.top=0; overlay.style.left=0; overlay.style.width="100%"; overlay.style.height="100%";
+    overlay.style.display="flex"; overlay.style.alignItems="center"; overlay.style.justifyContent="center"; overlay.style.fontSize="120px";
+    overlay.style.color="white"; overlay.style.textShadow="4px 4px 0 black"; overlay.style.background="rgba(0,0,0,0.3)"; overlay.style.zIndex=1000;
+    document.body.appendChild(overlay);
+    const interval=setInterval(()=>{
+        overlay.textContent=countdown[idx]; idx++;
+        if(idx>=countdown.length){ clearInterval(interval); document.body.removeChild(overlay); update(); }
+    },1000);
 }
 
 function endGame(){
@@ -142,12 +157,11 @@ function endGame(){
     localStorage.setItem("fluppySkins",JSON.stringify(skinData));
 }
 
-// ---------------- UPDATE LOOP ----------------
-function update(){
-    if(!gameStarted || gameOver) return;
+function update(timestamp){
+    if(!gameStarted) return;
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // Background Day/Night
+    // Background
     if(Math.floor(score/5)%2===0){
         ctx.fillStyle="skyblue"; ctx.fillRect(0,0,canvas.width,canvas.height);
         ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(canvas.width-100,100,50,0,Math.PI*2); ctx.fill();
@@ -158,40 +172,32 @@ function update(){
         ctx.fillStyle="#ffffcc"; ctx.beginPath(); ctx.arc(canvas.width-100,100,40,0,Math.PI*2); ctx.fill();
     }
 
-    // Physics & Pipes movement only if not paused
     if(!paused){
-        bird.velocity+=gravity;
-        bird.y+=bird.velocity;
-        bird.rotation=Math.min(bird.velocity*5,25);
+        bird.velocity+=gravity; bird.y+=bird.velocity; bird.rotation=Math.min(bird.velocity*5,25);
 
+        // Pipes movement
         pipes.forEach(pipe=>{pipe.x-=pipeSpeed;
-            ctx.fillStyle=selectedSkin.pipeColor;
-            ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
-            ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
-
-            if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top || bird.y+bird.height>canvas.height-pipe.bottom)){endGame();}
-
-            if(!pipe.passed && pipe.x+pipe.width<bird.x){score++;pipe.passed=true; pipeSpeed+=0.1;} // speed increase per score
+            ctx.fillStyle=selectedSkin.pipeColor; ctx.fillRect(pipe.x,0,pipe.width,pipe.top); ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
+            if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top || bird.y+bird.height>canvas.height-pipe.bottom)) endGame();
+            if(!pipe.passed && pipe.x+pipe.width<bird.x){score++; pipe.passed=true; pipeSpeed+=0.1;}
         });
 
-        // Remove offscreen pipes
         pipes=pipes.filter(pipe=>pipe.x+pipe.width>0);
 
-        // Create new pipes
-        if(pipes.length===0 || pipes[pipes.length-1].x<canvas.width-200) createPipe();
-    }else{
-        // paused: physics freeze, pipes freeze
-    }
+        // Pipe spawn every 3000ms
+        if(!lastPipeTime) lastPipeTime=timestamp;
+        if(timestamp - lastPipeTime >= fixedPipeInterval){ createPipe(); lastPipeTime=timestamp; }
+    } 
 
     // Ground
     const groundHeight=50; ctx.fillStyle=selectedSkin.groundColor; ctx.fillRect(0,canvas.height-groundHeight,canvas.width,groundHeight);
 
     // Bird
-    const birdImgObj=new Image(); birdImgObj.src=selectedSkin.file;
+    const birdImg=new Image(); birdImg.src=selectedSkin.file;
     ctx.save(); ctx.translate(bird.x+bird.width/2,bird.y+bird.height/2); ctx.rotate(bird.rotation*Math.PI/180);
-    ctx.drawImage(birdImgObj,-bird.width/2,-bird.height/2,bird.width,bird.height); ctx.restore();
+    ctx.drawImage(birdImg,-bird.width/2,-bird.height/2,bird.width,bird.height); ctx.restore();
 
-    // UI Score
+    // Score
     ctx.fillStyle="black"; ctx.font="25px Arial"; ctx.fillText("Score: "+score,20,40); ctx.fillText("High Score: "+highScore,20,70);
 
     requestAnimationFrame(update);
@@ -209,29 +215,23 @@ backBtn.addEventListener("click",()=>{settingsScreen.style.display="none"; title
 storeBtn.addEventListener("click",()=>{storeScreen.style.display="flex"; renderSkins(); titleScreen.style.display="none";});
 backStoreBtn.addEventListener("click",()=>{storeScreen.style.display="none"; titleScreen.style.display="flex";});
 
-// Pause button
+// Pause
 pauseBtn.addEventListener("click",()=>{
     paused=!paused;
-    pauseBtn.innerHTML = paused?"▶":"⏸";
+    pauseBtn.textContent=paused?"▶":"⏸";
 });
 
 // Restart/Home
 restartBtn.addEventListener("click",()=>{startGame();});
 homeBtn.addEventListener("click",()=>{titleScreen.style.display="flex"; restartBtn.style.display="none"; homeBtn.style.display="none"; pauseBtn.style.display="none";});
 
-// Difficulty select changes only gap
-document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
-    radio.addEventListener("change",()=>{
-        difficulty=radio.value;
-        localStorage.setItem("fluppyDifficulty",difficulty);
-    });
-});
+// Difficulty select (gap only)
+document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{ radio.addEventListener("change",()=>{difficulty=radio.value; localStorage.setItem("fluppyDifficulty",difficulty); }); });
 
-// Render Skins
+// Skins
 function renderSkins(){
     skinRow.innerHTML=""; upperSkinDisplay.innerHTML="";
-    const upperImg=new Image(); upperImg.src=selectedSkin.file; upperImg.style.width="150px"; upperImg.style.height="150px";
-    upperSkinDisplay.appendChild(upperImg);
+    const upperImg=new Image(); upperImg.src=selectedSkin.file; upperImg.style.width="150px"; upperImg.style.height="150px"; upperSkinDisplay.appendChild(upperImg);
     skins.forEach(s=>{
         const box=document.createElement("div"); box.className="skinBox";
         const img=document.createElement("img"); img.src=s.file; box.appendChild(img);
@@ -240,24 +240,10 @@ function renderSkins(){
         const overlay=document.createElement("div"); overlay.className="lockOverlay";
         if(skinData[s.name].unlocked){ overlay.style.display="none"; } else { overlay.textContent="🔒"; }
         box.appendChild(overlay);
-        box.addEventListener("click",()=>{
-            if(skinData[s.name].unlocked){ selectedSkin=s; confirmSkinBtn.className="confirmBtn unlocked"; } 
-            else { confirmSkinBtn.className="confirmBtn locked"; }
-            renderSkins();
-        });
+        box.addEventListener("click",()=>{ if(skinData[s.name].unlocked){selectedSkin=s; confirmSkinBtn.className="confirmBtn unlocked";}else{confirmSkinBtn.className="confirmBtn locked";} renderSkins(); });
         skinRow.appendChild(box);
     });
-    if(skinData[selectedSkin.name].unlocked){ confirmSkinBtn.className="confirmBtn unlocked"; } 
-    else { confirmSkinBtn.className="confirmBtn locked"; }
+    confirmSkinBtn.className = skinData[selectedSkin.name].unlocked ? "confirmBtn unlocked" : "confirmBtn locked";
 }
 
-confirmSkinBtn.addEventListener("click",()=>{
-    if(confirmSkinBtn.classList.contains("unlocked")){
-        localStorage.setItem("selectedSkin",selectedSkin.name);
-        storeScreen.style.display="none";
-        titleScreen.style.display="flex";
-    }
-});
-</script>
-</body>
-</html>
+confirmSkinBtn.addEventListener("click",()=>{ if(confirm
