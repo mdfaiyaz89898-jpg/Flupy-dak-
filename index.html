@@ -88,13 +88,21 @@ skins.forEach(s=>{if(!skinData[s.name]) skinData[s.name]={unlocked:s.unlockScore
 let selectedSkinName=localStorage.getItem('selectedSkin')||'Bird';
 let selectedSkin=skins.find(s=>s.name===selectedSkinName);
 
-// --- Functions ---
 function initGame(){
-  bird={x:100,y:200,width:60,height:60,velocity:0,rotation:0};
-  gravity=0.35; pipes=[]; score=0; gameOver=false; paused=false;
-  pipeSpeed=difficultySpeeds[difficulty];
-  document.querySelector(`input[name='difficulty'][value='${difficulty}']`).checked=true;
-}
+  bird = {x:100, y:200, width:60, height:60, velocity:0, rotation:0};
+  
+  gravity = 0.35;
+  pipes = [];
+  score = 0;
+  gameOver = false;
+  paused = false;
+
+  // ❌ difficulty system remove
+  // ❌ difficultySpeeds remove
+  // ❌ radio button remove
+
+  pipeSpeed = baseSpeed; // ✅ reset speed properly
+
 function createPipe(){
     let gap;
     if(difficulty === "Very Easy") gap = 280;
