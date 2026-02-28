@@ -527,7 +527,7 @@ pauseBtn.addEventListener("click", () => {
         clearInterval(pipeInterval);
         pauseBtn.innerHTML = "▶";
     } else {
-        pipeInterval = setInterval(createPipe, 2000);
+        pipeInterval = setInterval(createPipe, 2600);
         pauseBtn.innerHTML = " ";
         update();  // <— problem yahi hai
     }
