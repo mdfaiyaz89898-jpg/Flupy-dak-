@@ -521,17 +521,16 @@ confirmSkinBtn.addEventListener("click",()=>{
 });
 
 pauseBtn.addEventListener("click", () => {
+    paused = !paused;
 
-    paused = !paused;
-
-    if (paused) {
-        clearInterval(pipeInterval);
-        pauseBtn.innerHTML = "▶";
-    } else {
-        pipeInterval = setInterval(createPipe, 2000);
-        pauseBtn.innerHTML = " ";
-        update();
-    }
+    if (paused) {
+        clearInterval(pipeInterval);
+        pauseBtn.innerHTML = "▶";
+    } else {
+        pipeInterval = setInterval(createPipe, 2000);
+        pauseBtn.innerHTML = " ";
+        update();  // <— problem yahi hai
+    }
 });
 restartBtn.addEventListener("click",()=>{ startGame(); });
 homeBtn.addEventListener("click",()=>{ titleScreen.style.display="flex"; restartBtn.style.display="none"; homeBtn.style.display="none"; pauseBtn.style.display="none"; });
