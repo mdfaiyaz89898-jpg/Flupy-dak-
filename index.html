@@ -25,118 +25,117 @@ canvas{ display:block; }
 
 /* Store Screen */
 #storeScreen {
-    display: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: white;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 40px;
-    z-index: 10;
-    overflow: hidden;
+    display: none;       
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;       
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 40px;
+    z-index: 10;             
+    overflow: hidden;        
 }
 
 /* Store Screen Heading */
 #storeScreen h2 {
-    margin: 10px 0;
-    font-size: 24px;
-    color: #333;
-    text-align: center;
-    flex-shrink: 0;
+    margin: 10px 0;
+    font-size: 24px;
+    color: #333;
+    text-align: center;
+    flex-shrink: 0;          
 }
 
 /* Upper skin display */
 #upperSkinDisplay {
-    text-align: center;
-    margin: 10px 0;
+    text-align: center;
+    margin: 10px 0;
 }
 
 /* Horizontal skins row */
 .skinRow {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 15px;
-    margin: 15px 0;
-    width: 100%;
-    height: 180px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 10px 20px;
-    box-sizing: border-box;
-    scroll-behavior: smooth;
-    white-space: nowrap;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    margin: 15px 0;
+    width: 100%;
+    height: 180px;
+    overflow-x: auto;       
+    overflow-y: hidden;     
+    padding: 10px 20px;
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+    white-space: nowrap;    
 }
 
 /* Each skin box */
 .skinBox {
-    min-width: 130px;
-    flex-shrink: 0;
-    text-align: center;
-    cursor: pointer;
-    position: relative;
+    min-width: 130px;       
+    flex-shrink: 0;
+    text-align: center;
+    cursor: pointer;
+    position: relative;     
 }
 .skinBox img {
-    width: 100px;
-    height: 100px;
-    border-radius: 10px;
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
 }
 
 /* Lock overlay */
 .lockOverlay {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.4);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 30px;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 30px;
 }
 
 /* Confirm button */
 #confirmSkinBtn {
-    padding: 6px 20px;
-    font-size: 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 10px;
-    font-weight: bold;
+    padding: 6px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-weight: bold;
 }
 .confirmBtn.locked {
-    background: grey;
-    color: white;
-    cursor: not-allowed;
+    background: grey;
+    color: white;
+    cursor: not-allowed;
 }
 .confirmBtn.unlocked {
-    background: green;
-    color: white;
+    background: green;
+    color: white;
 }
 
 /* Back button */
 .backStoreBtn {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-size: 30px;
-    background: transparent;
-    color: orange;
-    border: none;
-    cursor: pointer;
-    z-index: 20;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 30px;
+    background: transparent;
+    color: orange;
+    border: none;
+    cursor: pointer;
+    z-index: 20; /* above everything */
 }
 
 /* In-Game UI */
 #pauseBtn, #restartBtn, #homeBtn{ position:absolute; top:10px; padding:8px 12px; border:none; border-radius:8px; font-size:16px; cursor:pointer; font-weight:bold; }
 #pauseBtn{ right:10px; display:none; background:#ccc; color:#333; }
-#pauseBtn::after{ content:"⏸"; font-size:18px; }
 #restartBtn{ display:none; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(45deg,#ff5722,#e64a19); color:white; box-shadow:3px 3px 0 #b71c1c;}
 #homeBtn{ display:none; top:50%; left:50%; transform:translate(-50%,70%); background:linear-gradient(45deg,#03a9f4,#0288d1); color:white; box-shadow:3px 3px 0 #01579b;}
 
@@ -148,28 +147,28 @@ canvas{ display:block; }
 <body>
 
 <div id="titleScreen">
-    <h1>Fluppy Bird</h1>
-    <button id="playBtn">Play</button>
-    <button id="settingsBtnMain">Settings</button>
-    <button id="storeBtn">Store</button>
+    <h1>Fluppy Bird</h1>
+    <button id="playBtn">Play</button>
+    <button id="settingsBtnMain">Settings</button>
+    <button id="storeBtn">Store</button>
 </div>
 
 <div id="settingsScreen">
-    <button class="backBtn">&#8592;</button>
-    <h2>Select Difficulty</h2>
-    <div id="difficultyOptions">
-        <label class="veryEasy"><input type="radio" name="difficulty" value="Very Easy"> Very Easy</label>
-        <label class="normal"><input type="radio" name="difficulty" value="Normal"> Normal</label>
-        <label class="hard"><input type="radio" name="difficulty" value="Hard"> Hard</label>
-    </div>
+    <button class="backBtn">&#8592;</button>
+    <h2>Select Difficulty</h2>
+    <div id="difficultyOptions">
+        <label class="veryEasy"><input type="radio" name="difficulty" value="Very Easy"> Very Easy</label>
+        <label class="normal"><input type="radio" name="difficulty" value="Normal"> Normal</label>
+        <label class="hard"><input type="radio" name="difficulty" value="Hard"> Hard</label>
+    </div>
 </div>
 
 <div id="storeScreen">
-    <button class="backStoreBtn">&#8592;</button>
-    <h2>Choose Skin</h2>
-    <div id="upperSkinDisplay" style="text-align:center;margin:10px;"></div>
-    <div class="skinRow" id="skinRow"></div>
-    <button id="confirmSkinBtn" class="confirmBtn locked">Confirm</button>
+    <button class="backStoreBtn">&#8592;</button>
+    <h2>Choose Skin</h2>
+    <div id="upperSkinDisplay" style="text-align:center;margin:10px;"></div>
+    <div class="skinRow" id="skinRow"></div>
+    <button id="confirmSkinBtn" class="confirmBtn locked">Confirm</button>
 </div>
 
 <canvas id="gameCanvas"></canvas>
@@ -200,199 +199,193 @@ const upperSkinDisplay = document.getElementById("upperSkinDisplay");
 const skinRow = document.getElementById("skinRow");
 
 let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty;
-let lastPipeX = 0;
 highScore = localStorage.getItem("fluppyHighScore") || 0;
 difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
 pipeSpeed = 2;
+let lastPipeX = 0; // global last pipe X
 
 // Skins
 let skins = [
-  {name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png", unlockScore:0, pipeColor:"#00c853", groundColor:"#8B4513"},
-  {name:"Mango Bird", file:"Picsart_26-02-27_01-28-33-302.png", unlockScore:10, pipeColor:"#FFA500", groundColor:"#FFCC80"},
-  {name:"Happy Perrot", file:"Picsart_26-02-27_10-16-34-761.png", unlockScore:20, pipeColor:"#ff4081", groundColor:"#f48fb1"},
-  {name:"Angry Bird", file:"Picsart_26-02-27_10-15-45-688.png", unlockScore:30, pipeColor:"#ff1744", groundColor:"#d50000"},
-  {name:"Crow", file:"Picsart_26-02-27_20-37-59-368.png", unlockScore:50, pipeColor:"#333333", groundColor:"#555555"}
+  {name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png", unlockScore:0, pipeColor:"#00c853", groundColor:"#8B4513"},
+  {name:"Mango Bird", file:"Picsart_26-02-27_01-28-33-302.png", unlockScore:10, pipeColor:"#FFA500", groundColor:"#FFCC80"},
+  {name:"Happy Perrot", file:"Picsart_26-02-27_10-16-34-761.png", unlockScore:20, pipeColor:"#ff4081", groundColor:"#f48fb1"},
+  {name:"Angry Bird", file:"Picsart_26-02-27_10-15-45-688.png", unlockScore:30, pipeColor:"#ff1744", groundColor:"#d50000"},
+  {name:"Crow", file:"Picsart_26-02-27_20-37-59-368.png", unlockScore:50, pipeColor:"#333333", groundColor:"#555555"}
 ];
 
 let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
 skins.forEach(s=>{
-    if(!skinData[s.name]) skinData[s.name]={unlocked: s.unlockScore===0};
+    if(!skinData[s.name]) skinData[s.name]={unlocked: s.unlockScore===0};
 });
 let selectedSkinName = localStorage.getItem("selectedSkin") || "Bird";
 let selectedSkin = skins.find(s=>s.name===selectedSkinName);
 
 function initGame(){
-    bird = {x:100, y:200, width:60, height:60, velocity:0, rotation:0};
-    gravity = 0.35;
-    pipes = [];
-    score = 0;
-    gameOver = false;
-    paused = false;
-    pipeSpeed = 1.5;
-    lastPipeX = 0;
-    document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
+    bird = {x:100, y:200, width:60, height:60, velocity:0, rotation:0};
+    gravity = 0.35;
+    pipes = [];
+    score = 0;
+    gameOver = false;
+    paused = false;
+    pipeSpeed = 1.5;
+    lastPipeX = 0;
+    document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
 }
 
 function createPipe(){
-    let gap;
-    if(difficulty==="Very Easy") gap=280;
-    else if(difficulty==="Normal") gap=200;
-    else gap=150; // Hard
+    let gap;
+    if(difficulty==="Very Easy") gap=280;
+    else if(difficulty==="Normal") gap=200;
+    else gap=150; // Hard
 
-    const topHeight = Math.random()*(canvas.height-gap-100)+50;
-    let pipeX = lastPipeX + gap;
-    if(pipes.length===0) pipeX = canvas.width;
+    const topHeight = Math.random()*(canvas.height-gap-100)+50;
+    let pipeX = pipes.length ? lastPipeX + gap : canvas.width;
 
-    pipes.push({
-        x:pipeX,
-        width:60,
-        top:topHeight,
-        bottom:canvas.height-topHeight-gap,
-        passed:false
-    });
+    pipes.push({
+        x:pipeX,
+        width:60,
+        top:topHeight,
+        bottom:canvas.height-topHeight-gap,
+        passed:false
+    });
 
-    lastPipeX = pipeX;
+    lastPipeX = pipeX;
 }
 
-// ---------------- Update function with pause-safe pipe spawn ----------------
+// ------------------------- Update function -------------------------
 function update() {
-    if (!gameStarted || gameOver) return;
+    if (!gameStarted || gameOver) return;
 
-    // Bird physics
-    if(!paused){
-        bird.velocity += gravity;
-        bird.y += bird.velocity;
-        bird.rotation = Math.min(bird.velocity * 5,25);
-    }
+    // Bird physics
+    if(!paused){
+        bird.velocity += gravity;
+        bird.y += bird.velocity;
+        bird.rotation = Math.min(bird.velocity * 5, 25);
+    }
 
-    // Clear canvas
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Day/Night background
-    if(Math.floor(score/5)%2===0){
-        ctx.fillStyle="skyblue";
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle="yellow";
-        ctx.beginPath();
-        ctx.arc(canvas.width-100,100,50,0,Math.PI*2);
-        ctx.fill();
-        ctx.fillStyle="white";
-        ctx.beginPath();
-        ctx.arc(80, canvas.height-100,30, Math.PI*0.5,Math.PI*1.5);
-        ctx.arc(120, canvas.height-120,40,Math.PI,Math.PI*2);
-        ctx.arc(160, canvas.height-100,30,Math.PI*1.5,Math.PI*0.5);
-        ctx.closePath();
-        ctx.fill();
-    }else{
-        ctx.fillStyle="#1a1a2e";
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle="white";
-        for(let i=0;i<50;i++){
-            ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height/2,2,2);
-        }
-        ctx.fillStyle="#ffffcc";
-        ctx.beginPath();
-        ctx.arc(canvas.width-100,100,40,0,Math.PI*2);
-        ctx.fill();
-    }
+    // Background draw
+    if(Math.floor(score / 5) % 2 === 0){
+        ctx.fillStyle="skyblue"; ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(canvas.width-100,100,50,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle="white"; ctx.beginPath(); ctx.arc(80,canvas.height-100,30,Math.PI*0.5,Math.PI*1.5); ctx.arc(120,canvas.height-120,40,Math.PI,Math.PI*2); ctx.arc(160,canvas.height-100,30,Math.PI*1.5,Math.PI*0.5); ctx.closePath(); ctx.fill();
+    } else {
+        ctx.fillStyle="#1a1a2e"; ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle="white"; for(let i=0;i<50;i++){ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height/2,2,2);}
+        ctx.fillStyle="#ffffcc"; ctx.beginPath(); ctx.arc(canvas.width-100,100,40,0,Math.PI*2); ctx.fill();
+    }
 
-    // ---------------- Pipes ----------------
-    if(!paused){
-        pipes.forEach(pipe=>pipe.x-=pipeSpeed);
-        pipes = pipes.filter(pipe=>pipe.x+pipe.width>0);
-        if(pipes.length===0 || lastPipeX<canvas.width){
-            createPipe();
-        }
-    }
+    // Pipes
+    pipes.forEach(pipe=>{
+        if(!paused) pipe.x -= pipeSpeed;
+        ctx.fillStyle = selectedSkin.pipeColor;
+        ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
+        ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
 
-    // Draw all pipes
-    pipes.forEach(pipe=>{
-        ctx.fillStyle = selectedSkin.pipeColor;
-        ctx.fillRect(pipe.x,0,pipe.width,pipe.top);
-        ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
+        // collision
+        if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top || bird.y+bird.height>canvas.height-pipe.bottom)){
+            endGame();
+        }
 
-        // Collision
-        if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x &&
-           (bird.y<pipe.top || bird.y+bird.height>canvas.height-pipe.bottom)){
-            endGame();
-        }
+        if(!pipe.passed && pipe.x+pipe.width<bird.x){ score++; pipe.passed=true;}
+    });
 
-        // Score
-        if(!pipe.passed && pipe.x+pipe.width<bird.x){
-            score++;
-            pipe.passed=true;
-        }
-    });
+    // Remove off-screen pipes only if not paused
+    if(!paused) pipes=pipes.filter(pipe=>pipe.x+pipe.width>0);
 
-    // Ground
-    ctx.fillStyle = selectedSkin.groundColor;
-    ctx.fillRect(0, canvas.height-50, canvas.width, 50);
+    // Spawn new pipes only if not paused
+    if(!paused && (pipes.length===0 || lastPipeX<canvas.width)) createPipe();
 
-    // Bird
-    const birdImgObj = new Image();
-    birdImgObj.src = selectedSkin.file;
-    ctx.save();
-    ctx.translate(bird.x+bird.width/2, bird.y+bird.height/2);
-    ctx.rotate(bird.rotation*Math.PI/180);
-    ctx.drawImage(birdImgObj,-bird.width/2,-bird.height/2,bird.width,bird.height);
-    ctx.restore();
+    // Ground
+    ctx.fillStyle=selectedSkin.groundColor; ctx.fillRect(0,canvas.height-50,canvas.width,50);
 
-    // Score UI
-    ctx.fillStyle="black";
-    ctx.font="25px Arial";
-    ctx.fillText("Score: "+score,20,40);
-    ctx.fillText("High Score: "+highScore,20,70);
+    // Bird
+    const birdImgObj = new Image(); birdImgObj.src=selectedSkin.file;
+    ctx.save(); ctx.translate(bird.x+bird.width/2,bird.y+bird.height/2); ctx.rotate(bird.rotation*Math.PI/180); ctx.drawImage(birdImgObj,-bird.width/2,-bird.height/2,bird.width,bird.height); ctx.restore();
 
-    requestAnimationFrame(update);
+    // Score UI
+    ctx.fillStyle="black"; ctx.font="25px Arial"; ctx.fillText("Score: "+score,20,40); ctx.fillText("High Score: "+highScore,20,70);
+
+    requestAnimationFrame(update);
 }
 
-// ---------------- Jump ----------------
+// ------------------------- Jump -------------------------
 function jump(){ if(gameStarted && !gameOver && !paused) bird.velocity=-5; }
 document.addEventListener("click", jump);
 document.addEventListener("touchstart", e=>{ e.preventDefault(); jump(); });
 
-// ---------------- Start game ----------------
+// ------------------------- Start / Pause / Store -------------------------
 playBtn.addEventListener("click",()=>{ startGame(); });
-
-// ---------------- Settings ----------------
 settingsBtnMain.addEventListener("click",()=>{ titleScreen.style.display="none"; settingsScreen.style.display="flex"; });
 backBtn.addEventListener("click",()=>{ settingsScreen.style.display="none"; titleScreen.style.display="flex"; });
-
-// ---------------- Store ----------------
 storeBtn.addEventListener("click",()=>{ storeScreen.style.display="flex"; renderSkins(); titleScreen.style.display="none"; });
 backStoreBtn.addEventListener("click",()=>{ storeScreen.style.display="none"; titleScreen.style.display="flex"; });
 
-// ---------------- Difficulty ----------------
+// Difficulty select
 document.querySelectorAll('input[name="difficulty"]').forEach(radio=>{
-    radio.addEventListener("change",()=>{
-        difficulty = radio.value;
-        pipeSpeed = { "Very Easy":2, "Normal":4, "Hard":6 }[difficulty];
-        localStorage.setItem("fluppyDifficulty",difficulty);
-    });
+    radio.addEventListener("change",()=>{
+        difficulty = radio.value;
+        pipeSpeed = difficulty==="Very Easy"?2:difficulty==="Normal"?4:6;
+        localStorage.setItem("fluppyDifficulty",difficulty);
+    });
 });
 
-// ---------------- Pause button ----------------
-pauseBtn.addEventListener("click", () => {
-    paused = !paused;
-    pauseBtn.innerHTML = paused ? "▶" : " ";  // toggle icon
+// ------------------------- Render Skins -------------------------
+function renderSkins(){
+    skinRow.innerHTML=""; upperSkinDisplay.innerHTML="";
+    const upperImg = new Image(); upperImg.src=selectedSkin.file; upperImg.style.width="150px"; upperImg.style.height="150px"; upperSkinDisplay.appendChild(upperImg);
+
+    skins.forEach(s=>{
+        const box=document.createElement("div"); box.className="skinBox";
+        const img=document.createElement("img"); img.src=s.file; box.appendChild(img);
+        const name=document.createElement("div"); name.textContent=s.name; box.appendChild(name);
+        const price=document.createElement("div"); price.textContent=s.unlockScore+" score"; box.appendChild(price);
+
+        const overlay=document.createElement("div"); overlay.className="lockOverlay";
+        if(skinData[s.name].unlocked){ overlay.style.display="none"; } else { overlay.textContent="🔒"; }
+        box.appendChild(overlay);
+
+        box.addEventListener("click",()=>{
+            if(skinData[s.name].unlocked){ selectedSkin=s; confirmSkinBtn.className="confirmBtn unlocked"; }
+            else confirmSkinBtn.className="confirmBtn locked";
+            renderSkins();
+        });
+
+        skinRow.appendChild(box);
+    });
+
+    if(skinData[selectedSkin.name].unlocked){ confirmSkinBtn.className="confirmBtn unlocked"; }
+    else confirmSkinBtn.className="confirmBtn locked";
+}
+
+confirmSkinBtn.addEventListener("click",()=>{
+    if(confirmSkinBtn.classList.contains("unlocked")){
+        localStorage.setItem("selectedSkin",selectedSkin.name);
+        storeScreen.style.display="none";
+        titleScreen.style.display="flex";
+    }
 });
 
-// ---------------- Restart & Home ----------------
+// ------------------------- Pause button -------------------------
+let pipeInterval;
+pauseBtn.addEventListener("click",()=>{
+    paused = !paused;
+    if(paused){
+        clearInterval(pipeInterval); pauseBtn.innerHTML="▶";
+    } else {
+        pipeInterval = setInterval(createPipe,2600);
+        pauseBtn.innerHTML=" ";
+        update();
+    }
+});
+
+// ------------------------- Restart / Home -------------------------
 restartBtn.addEventListener("click",()=>{ startGame(); });
 homeBtn.addEventListener("click",()=>{ titleScreen.style.display="flex"; restartBtn.style.display="none"; homeBtn.style.display="none"; pauseBtn.style.display="none"; });
 
-// ---------------- Render Skins function ----------------
-function renderSkins(){
-    skinRow.innerHTML="";
-    upperSkinDisplay.innerHTML="";
-    const upperImg = new Image();
-    upperImg.src = selectedSkin.file;
-    upperImg.style.width="150px"; upperImg.style.height="150px";
-    upperSkinDisplay.appendChild(upperImg);
-
-    skins.forEach(s=>{
-        const box = document.createElement("div");
-        box.className="skinBox";
-        const img = document.createElement("img");
-        img.src = s.file;
-        box.append
+// ------------------------- Start Game -------------------------
+function startGame(){
+    clearInterval(pipeInterval);
+    titleScreen.style.display="none"; settingsScreen.style.display="none";
