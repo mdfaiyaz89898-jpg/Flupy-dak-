@@ -183,16 +183,25 @@ function initGame(){
     document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
 }
 
-function createPipe(){
-    let gap;
-    if(difficulty==="Very Easy") gap=280;
-    else if(difficulty==="Normal") gap=200;
-    else gap=150;
-    const topHeight = Math.random()*(canvas.height-gap-100)+50;
-    const pipeX = canvas.width;
-    pipes.push({x:pipeX, width:60, top:topHeight, bottom:canvas.height-topHeight-gap, passed:false});
-}
+  function createPipe(){
+    let gap;
 
+    if(difficulty==="Very Easy") gap=280;
+    else if(difficulty==="Normal") gap=200;
+    else gap=150; // Hard
+
+    const topHeight = Math.random()*(canvas.height-gap-100)+50;
+    const pipeX = canvas.width;
+
+    pipes.push({
+        x:pipeX,
+        width:60,
+        top:topHeight,
+        bottom:canvas.height-topHeight-gap,
+        passed:false
+    });
+  }
+  
 let pipeInterval;
 function startGame(){
     clearInterval(pipeInterval);
