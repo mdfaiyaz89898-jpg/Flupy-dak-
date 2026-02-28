@@ -55,12 +55,14 @@ const upperSkinDisplay=document.getElementById('upperSkinDisplay');
 // --- Game variables ---
 let bird, gravity, pipes=[], score=0, gameOver=false, paused=false, gameStarted=false;
 
-// --- Game variables ---
-let bird, gravity, pipes=[], score=0, gameOver=false, paused=false, gameStarted=false;
+// 🔥 Base speed (recommended smooth start)
+let baseSpeed = 1.5;
+let pipeSpeed = baseSpeed;
 
-// Base speed (Very Easy se start)
-let pipeSpeed = 3;
 let speedIncrement = 0.1; // har score ke baad 0.1 increase
+let maxSpeed = 8; // maximum speed limit (rocket banne se bachane ke liye 😂)
+
+let highScore = parseInt(localStorage.getItem('fluppyHighScore')) || 0;
 
 let highScore = parseInt(localStorage.getItem('fluppyHighScore')) || 0;
   
