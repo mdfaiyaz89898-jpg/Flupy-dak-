@@ -101,10 +101,9 @@ const confirmSkinBtn = document.getElementById("confirmSkinBtn");
 const upperSkinDisplay = document.getElementById("upperSkinDisplay");
 const skinRow = document.getElementById("skinRow");
 
-let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, difficulty, lastPipeX, pipeGap;
+let bird, gravity, pipes, score, highScore, gameOver, gameStarted, paused, pipeSpeed, lastPipeX, pipeGap;
 highScore = localStorage.getItem("fluppyHighScore") || 0;
-difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
-pipeSpeed = 2;
+pipeSpeed = 1.5;
 pipeGap = 280;
 lastPipeX = 0;
 
@@ -130,8 +129,9 @@ function initGame(){
     gameOver = false;
     paused = false;
     lastPipeX = 0;
-    pipeGap = difficulty==="Very Easy"?280:difficulty==="Normal"?200:150;
-    document.querySelector(`input[name="difficulty"][value="${difficulty}"]`).checked = true;
+    pipeSpeed = 1.5; // reset speed
+    pipeGap = document.querySelector(`input[name="difficulty"]:checked`).value==="Very Easy"?280:
+              document.querySelector(`input[name="difficulty"]:checked`).value==="Normal"?200:150;
 }
 
 // Create pipes
@@ -142,7 +142,7 @@ function createPipe(){
     lastPipeX = pipeX;
 }
 
-// Update function
+// Update
 function update(){
     if(!gameStarted||gameOver) return;
 
@@ -150,12 +150,17 @@ function update(){
 
     if(!paused){ bird.velocity+=gravity; bird.y+=bird.velocity; bird.rotation=Math.min(bird.velocity*5,25); }
 
-    // Background day/night
+    // Background
     if(Math.floor(score/5)%2===0){ ctx.fillStyle="skyblue"; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(canvas.width-100,100,50,0,Math.PI*2); ctx.fill(); ctx.fillStyle="white"; ctx.beginPath(); ctx.arc(80,canvas.height-100,30,Math.PI*0.5,Math.PI*1.5); ctx.arc(120,canvas.height-120,40,Math.PI,Math.PI*2); ctx.arc(160,canvas.height-100,30,Math.PI*1.5,Math.PI*0.5); ctx.closePath(); ctx.fill(); }
     else { ctx.fillStyle="#1a1a2e"; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle="white"; for(let i=0;i<50;i++) ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height/2,2,2); ctx.fillStyle="#ffffcc"; ctx.beginPath(); ctx.arc(canvas.width-100,100,40,0,Math.PI*2); ctx.fill(); }
 
     // Pipes
-    pipes.forEach(pipe=>{ if(!paused) pipe.x-=pipeSpeed; ctx.fillStyle=selectedSkin.pipeColor; ctx.fillRect(pipe.x,0,pipe.width,pipe.top); ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom); if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top||bird.y+bird.height>canvas.height-pipe.bottom)) endGame(); if(!pipe.passed && pipe.x+pipe.width<bird.x){ score++; pipe.passed=true; } });
+    pipes.forEach(pipe=>{
+        if(!paused) pipe.x-=pipeSpeed;
+        ctx.fillStyle=selectedSkin.pipeColor; ctx.fillRect(pipe.x,0,pipe.width,pipe.top); ctx.fillRect(pipe.x,canvas.height-pipe.bottom,pipe.width,pipe.bottom);
+        if(bird.x<pipe.x+pipe.width && bird.x+bird.width>pipe.x && (bird.y<pipe.top||bird.y+bird.height>canvas.height-pipe.bottom)) endGame();
+        if(!pipe.passed && pipe.x+pipe.width<bird.x){ score++; pipe.passed=true; pipeSpeed+=0.1; } // speed increase each score
+    });
 
     if(!paused) pipes = pipes.filter(pipe=>pipe.x+pipe.width>0);
     if(!paused && (pipes.length===0||lastPipeX<canvas.width)) createPipe();
@@ -183,7 +188,7 @@ settingsBtnMain.addEventListener("click",()=>{ titleScreen.style.display="none";
 backBtn.addEventListener("click",()=>{ settingsScreen.style.display="none"; titleScreen.style.display="flex"; });
 storeBtn.addEventListener("click",()=>{ storeScreen.style.display="flex"; renderSkins(); titleScreen.style.display="none"; });
 backStoreBtn.addEventListener("click",()=>{ storeScreen.style.display="none"; titleScreen.style.display="flex"; });
-document.querySelectorAll('input[name="difficulty"]').forEach(r=>{ r.addEventListener("change",()=>{ difficulty=r.value; pipeGap = difficulty==="Very Easy"?280:difficulty==="Normal"?200:150; localStorage.setItem("fluppyDifficulty",difficulty); }); });
+document.querySelectorAll('input[name="difficulty"]').forEach(r=>{ r.addEventListener("change",()=>{ pipeGap=r.value==="Very Easy"?280:r.value==="Normal"?200:150; localStorage.setItem("fluppyDifficulty",r.value); }); });
 
 // Skins
 function renderSkins(){
@@ -203,7 +208,7 @@ function renderSkins(){
 confirmSkinBtn.addEventListener("click",()=>{ if(confirmSkinBtn.classList.contains("unlocked")){ localStorage.setItem("selectedSkin",selectedSkin.name); storeScreen.style.display="none"; titleScreen.style.display="flex"; }});
 
 // Pause
-pauseBtn.addEventListener("click",()=>{ paused=!paused; pauseBtn.innerHTML=paused?"▶":"⏸"; });
+pauseBtn.addEventListener("click",()=>{ paused=!paused; pauseBtn.innerHTML=paused?"▶":" "; });
 
 // Restart & Home
 restartBtn.addEventListener("click",()=>{ startGame(); });
@@ -228,4 +233,4 @@ function endGame(){
 }
 </script>
 </body>
-</html>
+    </html>
