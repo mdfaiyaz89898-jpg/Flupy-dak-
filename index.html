@@ -4,35 +4,47 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// ELEMENTS
-const titleScreen = document.getElementById("titleScreen");
-const settingsScreen = document.getElementById("settingsScreen");
-const storeScreen = document.getElementById("storeScreen");
-const playBtn = document.getElementById("playBtn");
-const settingsBtnMain = document.getElementById("settingsBtnMain");
-const storeBtn = document.getElementById("storeBtn");
+// SAFE ELEMENT GET
+function get(id){ return document.getElementById(id) || null; }
+
+const titleScreen = get("titleScreen");
+const settingsScreen = get("settingsScreen");
+const storeScreen = get("storeScreen");
+
+const playBtn = get("playBtn");
+const settingsBtnMain = get("settingsBtnMain");
+const storeBtn = get("storeBtn");
+
 const backBtn = document.querySelector(".backBtn");
 const backStoreBtn = document.querySelector(".backStoreBtn");
-const pauseBtn = document.getElementById("pauseBtn");
-const restartBtn = document.getElementById("restartBtn");
-const homeBtn = document.getElementById("homeBtn");
 
-let bird, gravity, pipes, score, gameOver, gameStarted=false, paused=false;
-let pipeSpeed = 2, pipeInterval, animationId;
+const pauseBtn = get("pauseBtn");
+const restartBtn = get("restartBtn");
+const homeBtn = get("homeBtn");
 
-// 🟢 IMAGE FIX (important)
+// GAME VARS
+let bird, pipes, score;
+let gravity = 0.35;
+let pipeSpeed = 2;
+
+let gameStarted = false;
+let gameOver = false;
+let paused = false;
+
+let pipeInterval;
+let animationId;
+
+// IMAGE FIX
 let birdImg = new Image();
-birdImg.src = localStorage.getItem("selectedSkinImg") || "Picsart_26-02-26_17-30-25-252.png";
+birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
 
 // INIT
 function initGame(){
     bird = {x:100,y:200,width:60,height:60,velocity:0};
-    gravity = 0.35;
     pipes = [];
     score = 0;
     gameOver = false;
     paused = false;
-    pipeSpeed = 2;
 }
 
 // PIPE
@@ -57,15 +69,15 @@ function startGame(){
     initGame();
     gameStarted=false;
 
-    titleScreen.style.display="none";
-    settingsScreen.style.display="none";
-    storeScreen.style.display="none";
+    if(titleScreen) titleScreen.style.display="none";
+    if(settingsScreen) settingsScreen.style.display="none";
+    if(storeScreen) storeScreen.style.display="none";
 
-    restartBtn.style.display="none";
-    homeBtn.style.display="none";
-    pauseBtn.style.display="none";
+    if(restartBtn) restartBtn.style.display="none";
+    if(homeBtn) homeBtn.style.display="none";
+    if(pauseBtn) pauseBtn.style.display="none";
 
-    // COUNTDOWN FIX
+    // COUNTDOWN
     let count=["3","2","1","Go!"];
     let i=0;
 
@@ -80,7 +92,7 @@ function startGame(){
             document.body.removeChild(overlay);
 
             gameStarted=true;
-            pauseBtn.style.display="block";
+            if(pauseBtn) pauseBtn.style.display="block";
 
             pipeInterval=setInterval(createPipe,2700);
             animationId=requestAnimationFrame(update);
@@ -91,12 +103,13 @@ function startGame(){
 // END
 function endGame(){
     gameOver=true;
+
     clearInterval(pipeInterval);
     cancelAnimationFrame(animationId);
 
-    restartBtn.style.display="block";
-    homeBtn.style.display="block";
-    pauseBtn.style.display="none";
+    if(restartBtn) restartBtn.style.display="block";
+    if(homeBtn) homeBtn.style.display="block";
+    if(pauseBtn) pauseBtn.style.display="none";
 }
 
 // UPDATE
@@ -108,16 +121,9 @@ function update(){
 
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // DAY/NIGHT SAME
-    if(Math.floor(score/5)%2===0){
-        ctx.fillStyle="skyblue";
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-    } else {
-        ctx.fillStyle="#1a1a2e";
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-    }
+    ctx.fillStyle="skyblue";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    // PIPES
     pipes.forEach(p=>{
         p.x -= pipeSpeed;
 
@@ -139,10 +145,8 @@ function update(){
         }
     });
 
-    // 🟢 BIRD DRAW FIX
     ctx.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
 
-    // SCORE
     ctx.fillStyle="black";
     ctx.font="25px Arial";
     ctx.fillText("Score: "+score,20,40);
@@ -157,10 +161,10 @@ document.addEventListener("click",()=>{
     }
 });
 
-// BUTTONS
-playBtn.onclick=startGame;
+// BUTTONS SAFE
+if(playBtn) playBtn.onclick=startGame;
 
-pauseBtn.onclick=()=>{
+if(pauseBtn) pauseBtn.onclick=()=>{
     if(!gameStarted || gameOver) return;
 
     paused=!paused;
@@ -176,33 +180,36 @@ pauseBtn.onclick=()=>{
     }
 };
 
-restartBtn.onclick=startGame;
+if(restartBtn) restartBtn.onclick=startGame;
 
-homeBtn.onclick=()=>{
+if(homeBtn) homeBtn.onclick=()=>{
     cancelAnimationFrame(animationId);
     clearInterval(pipeInterval);
 
-    titleScreen.style.display="flex";
-    restartBtn.style.display="none";
-    homeBtn.style.display="none";
-    pauseBtn.style.display="none";
+    if(titleScreen) titleScreen.style.display="flex";
+    if(restartBtn) restartBtn.style.display="none";
+    if(homeBtn) homeBtn.style.display="none";
+    if(pauseBtn) pauseBtn.style.display="none";
 };
 
-// NAV
-settingsBtnMain.onclick=()=>{
-    titleScreen.style.display="none";
-    settingsScreen.style.display="flex";
+// NAV SAFE
+if(settingsBtnMain) settingsBtnMain.onclick=()=>{
+    if(titleScreen) titleScreen.style.display="none";
+    if(settingsScreen) settingsScreen.style.display="flex";
 };
-backBtn.onclick=()=>{
-    settingsScreen.style.display="none";
-    titleScreen.style.display="flex";
+
+if(backBtn) backBtn.onclick=()=>{
+    if(settingsScreen) settingsScreen.style.display="none";
+    if(titleScreen) titleScreen.style.display="flex";
 };
-storeBtn.onclick=()=>{
-    titleScreen.style.display="none";
-    storeScreen.style.display="flex";
+
+if(storeBtn) storeBtn.onclick=()=>{
+    if(titleScreen) titleScreen.style.display="none";
+    if(storeScreen) storeScreen.style.display="flex";
 };
-backStoreBtn.onclick=()=>{
-    storeScreen.style.display="none";
-    titleScreen.style.display="flex";
+
+if(backStoreBtn) backStoreBtn.onclick=()=>{
+    if(storeScreen) storeScreen.style.display="none";
+    if(titleScreen) titleScreen.style.display="flex";
 };
-      </script>
+</script>
