@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Fluppy Bird Fixed</title>
+<title>Fluppy Bird FIXED</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{ margin:0; overflow:hidden; font-family:Arial; background:skyblue;}
@@ -15,22 +15,53 @@ display:flex; flex-direction:column; align-items:center; justify-content:center;
 
 #settingsScreen, #storeScreen{ display:none; }
 
-button{ padding:10px 20px; margin:8px; font-size:18px; border:none; border-radius:10px; cursor:pointer;}
+button{
+padding:12px 25px;
+font-size:18px;
+border:none;
+border-radius:12px;
+margin:8px;
+cursor:pointer;
+}
 
-#storeScreen{ background:white; overflow:hidden;}
-.skinRow{ display:flex; overflow-x:auto; gap:15px; padding:20px;}
-.skinBox{ min-width:120px; text-align:center;}
-.skinBox img{ width:100px; height:100px;}
+/* Store */
+.skinRow{
+display:flex;
+overflow-x:auto;
+gap:15px;
+padding:20px;
+}
 
-#pauseBtn{ position:absolute; top:10px; right:10px; display:none;}
-#restartBtn,#homeBtn{
-position:absolute; top:50%; left:50%;
+.skinBox{
+min-width:120px;
+text-align:center;
+cursor:pointer;
+}
+
+.skinBox img{
+width:100px;
+height:100px;
+}
+
+/* Game buttons */
+#pauseBtn{ position:absolute; top:10px; right:10px; display:none; }
+#restartBtn{
+position:absolute;
+top:50%;
+left:50%;
 transform:translate(-50%,-50%);
 display:none;
 }
-
+#homeBtn{
+position:absolute;
+top:60%;
+left:50%;
+transform:translate(-50%,-50%);
+display:none;
+}
 </style>
 </head>
+
 <body>
 
 <div id="titleScreen">
@@ -41,17 +72,17 @@ display:none;
 </div>
 
 <div id="settingsScreen">
-<h2>Difficulty</h2>
+<h2>Select Difficulty</h2>
 <label><input type="radio" name="difficulty" value="Very Easy"> Very Easy</label>
 <label><input type="radio" name="difficulty" value="Normal"> Normal</label>
 <label><input type="radio" name="difficulty" value="Hard"> Hard</label>
-<button onclick="backHome()">Back</button>
+<button onclick="goHome()">Back</button>
 </div>
 
 <div id="storeScreen">
 <h2>Store</h2>
 <div class="skinRow" id="skinRow"></div>
-<button onclick="backHome()">Back</button>
+<button onclick="goHome()">Back</button>
 </div>
 
 <canvas id="gameCanvas"></canvas>
@@ -74,52 +105,63 @@ const pauseBtn = document.getElementById("pauseBtn");
 const restartBtn = document.getElementById("restartBtn");
 const homeBtn = document.getElementById("homeBtn");
 
-// Game vars
-let bird, pipes, score, gameOver, started, paused;
-let speed = 2;
-let baseSpeed = 2;
-let gap = 280;
-let pipeTimer = 0;
+// GAME VARS
+let bird, pipes, score;
+let gameOver=false, started=false, paused=false;
+let pipeSpeed=2, baseSpeed=2;
+let gap=280;
+let pipeTimer=0;
+let animationId;
+
+// stars (FIXED)
+let stars = Array.from({length:50},()=>({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height/2
+}));
 
 // difficulty
 let difficulty = localStorage.getItem("diff") || "Very Easy";
-const gaps = { "Very Easy":280, "Normal":200, "Hard":150 };
+const gaps = {"Very Easy":280,"Normal":200,"Hard":150};
 
 // skins
-let skins = [
-{name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png", unlock:0},
-{name:"Mango", file:"Picsart_26-02-27_01-28-33-302.png", unlock:10},
-{name:"Parrot", file:"Picsart_26-02-27_10-16-34-761.png", unlock:20}
+let skins=[
+{name:"Bird",file:"Picsart_26-02-26_17-30-25-252.png",unlock:0},
+{name:"Mango",file:"Picsart_26-02-27_01-28-33-302.png",unlock:10},
+{name:"Parrot",file:"Picsart_26-02-27_10-16-34-761.png",unlock:20}
 ];
 
-let selectedSkin = skins[0];
-let birdImg = new Image();
-birdImg.src = selectedSkin.file;
+let selectedSkin=skins[0];
 
-// init
+// IMAGE FIX (IMPORTANT)
+let birdImg=new Image();
+birdImg.src=selectedSkin.file;
+
+// INIT
 function init(){
-bird = {x:100,y:200,v:0};
+bird={x:100,y:200,v:0};
 pipes=[];
 score=0;
 gameOver=false;
-started=true;
 paused=false;
-speed = baseSpeed;
-gap = gaps[difficulty];
+pipeSpeed=baseSpeed;
+gap=gaps[difficulty];
 pipeTimer=0;
 }
 
-// game loop
-function gameLoop(){
+// GAME LOOP
+function update(){
+
 if(!started) return;
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
 if(!paused && !gameOver){
 
 // physics
-bird.v += 0.4;
-bird.y += bird.v;
+bird.v+=0.4;
+bird.y+=bird.v;
 
-// background day/night
+// DAY NIGHT
 if(Math.floor(score/5)%2==0){
 ctx.fillStyle="skyblue";
 ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -136,9 +178,9 @@ ctx.fillRect(0,0,canvas.width,canvas.height);
 
 // stars
 ctx.fillStyle="white";
-for(let i=0;i<30;i++){
-ctx.fillRect(Math.random()*canvas.width,Math.random()*300,2,2);
-}
+stars.forEach(s=>{
+ctx.fillRect(s.x,s.y,2,2);
+});
 
 // moon
 ctx.beginPath();
@@ -146,19 +188,18 @@ ctx.arc(canvas.width-100,100,30,0,Math.PI*2);
 ctx.fill();
 }
 
-// pipes spawn (FIXED)
+// PIPE SPAWN FIX
 pipeTimer++;
 if(pipeTimer>120){
-let top = Math.random()*(canvas.height-gap-100)+50;
-pipes.push({x:canvas.width, top:top});
+let top=Math.random()*(canvas.height-gap-100)+50;
+pipes.push({x:canvas.width,top:top,passed:false});
 pipeTimer=0;
 }
 
-// pipes update
+// pipes
 pipes.forEach(p=>{
-p.x -= speed;
+p.x-=pipeSpeed;
 
-// draw
 ctx.fillStyle="green";
 ctx.fillRect(p.x,0,60,p.top);
 ctx.fillRect(p.x,p.top+gap,60,canvas.height);
@@ -170,11 +211,11 @@ gameOver=true;
 }
 }
 
-// score
+// score + speed
 if(!p.passed && p.x<bird.x){
 score++;
 p.passed=true;
-speed += 0.1; // 🔥 speed increase
+pipeSpeed+=0.1;
 }
 });
 
@@ -183,51 +224,64 @@ ctx.drawImage(birdImg,bird.x,bird.y,40,40);
 
 // UI
 ctx.fillStyle="black";
+ctx.font="20px Arial";
 ctx.fillText("Score: "+score,20,30);
 
-if(bird.y>canvas.height) gameOver=true;
-
+// ground hit
+if(bird.y>canvas.height){
+gameOver=true;
+}
 }
 
+// GAME OVER UI FIX
 if(gameOver){
 restartBtn.style.display="block";
 homeBtn.style.display="block";
 pauseBtn.style.display="none";
 }
 
-requestAnimationFrame(gameLoop);
+animationId=requestAnimationFrame(update);
 }
 
-// controls
+// CONTROLS
 document.addEventListener("click",()=>{
 if(started && !paused) bird.v=-6;
 });
 
+// PLAY
 document.getElementById("playBtn").onclick=()=>{
+cancelAnimationFrame(animationId);
 titleScreen.style.display="none";
 pauseBtn.style.display="block";
+
+started=true;
 init();
-gameLoop();
+update();
 };
 
+// PAUSE FIX
 pauseBtn.onclick=()=>{
 paused=!paused;
-pauseBtn.textContent = paused ? "▶" : "⏸";
+pauseBtn.textContent=paused?"▶":"⏸";
 };
 
+// RESTART FIX
 restartBtn.onclick=()=>{
 restartBtn.style.display="none";
 homeBtn.style.display="none";
 init();
 };
 
+// HOME FIX
 homeBtn.onclick=()=>{
+started=false;
 titleScreen.style.display="flex";
 restartBtn.style.display="none";
 homeBtn.style.display="none";
+pauseBtn.style.display="none";
 };
 
-// nav
+// NAV
 document.getElementById("settingsBtnMain").onclick=()=>{
 titleScreen.style.display="none";
 settingsScreen.style.display="flex";
@@ -239,13 +293,13 @@ storeScreen.style.display="flex";
 renderStore();
 };
 
-function backHome(){
+function goHome(){
 settingsScreen.style.display="none";
 storeScreen.style.display="none";
 titleScreen.style.display="flex";
 }
 
-// difficulty
+// DIFFICULTY
 document.querySelectorAll('input[name="difficulty"]').forEach(r=>{
 r.onchange=()=>{
 difficulty=r.value;
@@ -253,27 +307,29 @@ localStorage.setItem("diff",difficulty);
 };
 });
 
-// store
+// STORE
 function renderStore(){
 let row=document.getElementById("skinRow");
 row.innerHTML="";
 skins.forEach(s=>{
-let div=document.createElement("div");
-div.className="skinBox";
+let box=document.createElement("div");
+box.className="skinBox";
 
 let img=document.createElement("img");
 img.src=s.file;
 
-div.appendChild(img);
-div.onclick=()=>{
+box.appendChild(img);
+
+box.onclick=()=>{
 selectedSkin=s;
 birdImg.src=s.file;
 };
 
-row.appendChild(div);
+row.appendChild(box);
 });
 }
 
 </script>
+
 </body>
 </html>
