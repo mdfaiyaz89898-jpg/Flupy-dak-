@@ -16,36 +16,61 @@ const backStoreBtn = document.querySelector(".backStoreBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const restartBtn = document.getElementById("restartBtn");
 const homeBtn = document.getElementById("homeBtn");
+const confirmSkinBtn = document.getElementById("confirmSkinBtn");
+const upperSkinDisplay = document.getElementById("upperSkinDisplay");
+const skinRow = document.getElementById("skinRow");
 
 // GAME VARS
-let bird, pipes, score, gameOver, gameStarted=false, paused=false;
-let gravity=0.35, pipeSpeed=2;
+let bird, gravity, pipes, score, highScore, gameOver, gameStarted=false, paused=false;
+let pipeSpeed = 2, difficulty;
 let pipeInterval, animationId;
+
+highScore = localStorage.getItem("fluppyHighScore") || 0;
+difficulty = localStorage.getItem("fluppyDifficulty") || "Very Easy";
+
+// SKINS (UNCHANGED)
+let skins = [
+  {name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png", unlockScore:0, pipeColor:"#00c853", groundColor:"#8B4513"},
+  {name:"Mango Bird", file:"Picsart_26-02-27_01-28-33-302.png", unlockScore:10, pipeColor:"#FFA500", groundColor:"#FFCC80"},
+  {name:"Happy Perrot", file:"Picsart_26-02-27_10-16-34-761.png", unlockScore:20, pipeColor:"#ff4081", groundColor:"#f48fb1"},
+  {name:"Angry Bird", file:"Picsart_26-02-27_10-15-45-688.png", unlockScore:30, pipeColor:"#ff1744", groundColor:"#d50000"},
+  {name:"Crow", file:"Picsart_26-02-27_20-37-59-368.png", unlockScore:50, pipeColor:"#333333", groundColor:"#555555"}
+];
+
+let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
+skins.forEach(s=>{
+    if(!skinData[s.name]) skinData[s.name]={unlocked: s.unlockScore===0};
+});
+
+let selectedSkinName = localStorage.getItem("selectedSkin") || "Bird";
+let selectedSkin = skins.find(s=>s.name===selectedSkinName);
 
 // INIT
 function initGame(){
     bird = {x:100,y:200,width:60,height:60,velocity:0,rotation:0};
+    gravity = 0.35;
     pipes = [];
     score = 0;
     gameOver = false;
     paused = false;
+    pipeSpeed = 2;
 }
 
 // PIPE
 function createPipe(){
-    let gap = 220;
-    let top = Math.random()*(canvas.height-gap-100)+50;
+    let gap = difficulty==="Hard"?150:(difficulty==="Normal"?200:280);
+    let topHeight = Math.random()*(canvas.height-gap-100)+50;
 
     pipes.push({
         x:canvas.width,
         width:60,
-        top:top,
-        bottom:canvas.height-top-gap,
+        top:topHeight,
+        bottom:canvas.height-topHeight-gap,
         passed:false
     });
 }
 
-// START
+// START GAME
 function startGame(){
     cancelAnimationFrame(animationId);
     clearInterval(pipeInterval);
@@ -84,7 +109,7 @@ function startGame(){
     },1000);
 }
 
-// END
+// END GAME
 function endGame(){
     gameOver=true;
     clearInterval(pipeInterval);
@@ -93,19 +118,23 @@ function endGame(){
     restartBtn.style.display="block";
     homeBtn.style.display="block";
     pauseBtn.style.display="none";
+
+    if(score > highScore){
+        highScore = score;
+        localStorage.setItem("fluppyHighScore", highScore);
+    }
 }
 
-// UPDATE (MAIN FIXED LOOP)
+// UPDATE LOOP (MAIN FIX)
 function update(){
     if(!gameStarted || gameOver || paused) return;
 
-    // BIRD PHYSICS FIX
     bird.velocity += gravity;
     bird.y += bird.velocity;
 
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // DAY/NIGHT SAME LOGIC
+    // DAY/NIGHT (UNCHANGED)
     if(Math.floor(score/5)%2===0){
         ctx.fillStyle="skyblue";
         ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -114,7 +143,7 @@ function update(){
         ctx.beginPath();
         ctx.arc(canvas.width-100,100,50,0,Math.PI*2);
         ctx.fill();
-    }else{
+    } else {
         ctx.fillStyle="#1a1a2e";
         ctx.fillRect(0,0,canvas.width,canvas.height);
     }
@@ -123,7 +152,7 @@ function update(){
     pipes.forEach(p=>{
         p.x -= pipeSpeed;
 
-        ctx.fillStyle="green";
+        ctx.fillStyle = selectedSkin.pipeColor;
         ctx.fillRect(p.x,0,p.width,p.top);
         ctx.fillRect(p.x,canvas.height-p.bottom,p.width,p.bottom);
 
@@ -141,9 +170,10 @@ function update(){
         }
     });
 
-    // BIRD DRAW FIX
-    ctx.fillStyle="yellow";
-    ctx.fillRect(bird.x,bird.y,bird.width,bird.height);
+    // BIRD IMAGE FIX
+    const img = new Image();
+    img.src = selectedSkin.file;
+    ctx.drawImage(img,bird.x,bird.y,bird.width,bird.height);
 
     // SCORE
     ctx.fillStyle="black";
@@ -161,19 +191,22 @@ function jump(){
 }
 document.addEventListener("click", jump);
 
-// BUTTONS FIX
+// BUTTON FIXES
 playBtn.onclick=startGame;
 
 pauseBtn.onclick=()=>{
-    if(!gameStarted||gameOver)return;
+    if(!gameStarted || gameOver) return;
 
     paused=!paused;
 
     if(paused){
         clearInterval(pipeInterval);
-    }else{
+        cancelAnimationFrame(animationId);
+        pauseBtn.innerHTML="▶";
+    } else {
         pipeInterval=setInterval(createPipe,2700);
         animationId=requestAnimationFrame(update);
+        pauseBtn.innerHTML="⏸";
     }
 };
 
@@ -189,7 +222,7 @@ homeBtn.onclick=()=>{
     pauseBtn.style.display="none";
 };
 
-// NAVIGATION
+// NAVIGATION FIX
 settingsBtnMain.onclick=()=>{
     titleScreen.style.display="none";
     settingsScreen.style.display="flex";
@@ -206,4 +239,4 @@ backStoreBtn.onclick=()=>{
     storeScreen.style.display="none";
     titleScreen.style.display="flex";
 };
-        </script>
+</script>
