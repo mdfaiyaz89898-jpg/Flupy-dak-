@@ -1,68 +1,62 @@
 <script>
+window.onload = function(){
+
 const canvas = document.getElementById("gameCanvas");
+if(!canvas){ alert("Canvas missing"); return; }
+
 const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// SAFE ELEMENT GET
-function get(id){ return document.getElementById(id) || null; }
-
-const titleScreen = get("titleScreen");
-const settingsScreen = get("settingsScreen");
-const storeScreen = get("storeScreen");
+// SAFE GET
+function get(id){ return document.getElementById(id); }
 
 const playBtn = get("playBtn");
-const settingsBtnMain = get("settingsBtnMain");
-const storeBtn = get("storeBtn");
-
-const backBtn = document.querySelector(".backBtn");
-const backStoreBtn = document.querySelector(".backStoreBtn");
-
 const pauseBtn = get("pauseBtn");
 const restartBtn = get("restartBtn");
 const homeBtn = get("homeBtn");
+const titleScreen = get("titleScreen");
 
-// GAME VARS
+// VARS
 let bird, pipes, score;
 let gravity = 0.35;
 let pipeSpeed = 2;
 
-let gameStarted = false;
-let gameOver = false;
-let paused = false;
+let gameStarted=false;
+let gameOver=false;
+let paused=false;
 
 let pipeInterval;
 let animationId;
 
-// IMAGE FIX
+// IMAGE SAFE
 let birdImg = new Image();
 birdImg.src = "Picsart_26-02-26_17-30-25-252.png";
+birdImg.onerror = ()=>{ console.log("image load error"); };
 
 // INIT
 function initGame(){
-    bird = {x:100,y:200,width:60,height:60,velocity:0};
-    pipes = [];
-    score = 0;
-    gameOver = false;
-    paused = false;
+    bird={x:100,y:200,width:60,height:60,velocity:0};
+    pipes=[];
+    score=0;
+    gameOver=false;
+    paused=false;
 }
 
 // PIPE
 function createPipe(){
-    let gap = 220;
-    let top = Math.random()*(canvas.height-gap-100)+50;
-
     pipes.push({
         x:canvas.width,
         width:60,
-        top:top,
-        bottom:canvas.height-top-gap,
+        top:Math.random()*250+50,
+        bottom:200,
         passed:false
     });
 }
 
 // START
 function startGame(){
+
     cancelAnimationFrame(animationId);
     clearInterval(pipeInterval);
 
@@ -70,19 +64,15 @@ function startGame(){
     gameStarted=false;
 
     if(titleScreen) titleScreen.style.display="none";
-    if(settingsScreen) settingsScreen.style.display="none";
-    if(storeScreen) storeScreen.style.display="none";
-
     if(restartBtn) restartBtn.style.display="none";
     if(homeBtn) homeBtn.style.display="none";
     if(pauseBtn) pauseBtn.style.display="none";
 
-    // COUNTDOWN
     let count=["3","2","1","Go!"];
     let i=0;
 
     let overlay=document.createElement("div");
-    overlay.style="position:absolute;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:120px;color:white;background:rgba(0,0,0,0.3);z-index:999";
+    overlay.style="position:absolute;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:100px;color:white;background:rgba(0,0,0,0.3)";
     document.body.appendChild(overlay);
 
     let int=setInterval(()=>{
@@ -103,21 +93,19 @@ function startGame(){
 // END
 function endGame(){
     gameOver=true;
-
     clearInterval(pipeInterval);
     cancelAnimationFrame(animationId);
 
     if(restartBtn) restartBtn.style.display="block";
     if(homeBtn) homeBtn.style.display="block";
-    if(pauseBtn) pauseBtn.style.display="none";
 }
 
 // UPDATE
 function update(){
     if(!gameStarted || gameOver || paused) return;
 
-    bird.velocity += gravity;
-    bird.y += bird.velocity;
+    bird.velocity+=gravity;
+    bird.y+=bird.velocity;
 
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -125,27 +113,33 @@ function update(){
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
     pipes.forEach(p=>{
-        p.x -= pipeSpeed;
+        p.x-=pipeSpeed;
 
         ctx.fillStyle="green";
         ctx.fillRect(p.x,0,p.width,p.top);
         ctx.fillRect(p.x,canvas.height-p.bottom,p.width,p.bottom);
 
-        if(!p.passed && p.x < bird.x){
+        if(!p.passed && p.x<bird.x){
             score++;
             p.passed=true;
         }
 
         if(
-            bird.x < p.x+p.width &&
-            bird.x+bird.width > p.x &&
-            (bird.y < p.top || bird.y+bird.height > canvas.height-p.bottom)
+            bird.x<p.x+p.width &&
+            bird.x+bird.width>p.x &&
+            (bird.y<p.top || bird.y+bird.height>canvas.height-p.bottom)
         ){
             endGame();
         }
     });
 
-    ctx.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+    // SAFE DRAW
+    if(birdImg.complete){
+        ctx.drawImage(birdImg,bird.x,bird.y,bird.width,bird.height);
+    }else{
+        ctx.fillStyle="yellow";
+        ctx.fillRect(bird.x,bird.y,bird.width,bird.height);
+    }
 
     ctx.fillStyle="black";
     ctx.font="25px Arial";
@@ -157,7 +151,7 @@ function update(){
 // JUMP
 document.addEventListener("click",()=>{
     if(gameStarted && !gameOver && !paused){
-        bird.velocity = -5;
+        bird.velocity=-5;
     }
 });
 
@@ -173,7 +167,7 @@ if(pauseBtn) pauseBtn.onclick=()=>{
         clearInterval(pipeInterval);
         cancelAnimationFrame(animationId);
         pauseBtn.innerHTML="▶";
-    } else {
+    }else{
         pipeInterval=setInterval(createPipe,2700);
         animationId=requestAnimationFrame(update);
         pauseBtn.innerHTML="⏸";
@@ -182,34 +176,7 @@ if(pauseBtn) pauseBtn.onclick=()=>{
 
 if(restartBtn) restartBtn.onclick=startGame;
 
-if(homeBtn) homeBtn.onclick=()=>{
-    cancelAnimationFrame(animationId);
-    clearInterval(pipeInterval);
+if(homeBtn) homeBtn.onclick=()=>location.reload();
 
-    if(titleScreen) titleScreen.style.display="flex";
-    if(restartBtn) restartBtn.style.display="none";
-    if(homeBtn) homeBtn.style.display="none";
-    if(pauseBtn) pauseBtn.style.display="none";
 };
-
-// NAV SAFE
-if(settingsBtnMain) settingsBtnMain.onclick=()=>{
-    if(titleScreen) titleScreen.style.display="none";
-    if(settingsScreen) settingsScreen.style.display="flex";
-};
-
-if(backBtn) backBtn.onclick=()=>{
-    if(settingsScreen) settingsScreen.style.display="none";
-    if(titleScreen) titleScreen.style.display="flex";
-};
-
-if(storeBtn) storeBtn.onclick=()=>{
-    if(titleScreen) titleScreen.style.display="none";
-    if(storeScreen) storeScreen.style.display="flex";
-};
-
-if(backStoreBtn) backStoreBtn.onclick=()=>{
-    if(storeScreen) storeScreen.style.display="none";
-    if(titleScreen) titleScreen.style.display="flex";
-};
-</script>
+    </script>
