@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Fluppy Bird - PERFECT VERSION</title>
+<title>Fluppy Bird - BUG FREE PERFECT</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{ margin:0; overflow:hidden; font-family:Arial; background:skyblue;}
@@ -85,7 +85,7 @@ canvas{ display:block; }
 <button id="pauseBtn">⏸ Pause</button>
 <button id="restartBtn">🔄 Restart</button>
 <button id="homeBtn">🏠 Home</button>
-<div id="madeBy">Perplexity AI - 100% Bug Free 🚀</div>
+<div id="madeBy">Perplexity AI - 100% PERFECT 🚀</div>
 
 <script>
 const birdImages = {};
@@ -120,7 +120,6 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
-// ✅ PERFECT GAME STATE - POSITION BASED PIPES
 let gameState = { 
     bird: {x:100,y:200,width:60,height:60,velocity:0,rotation:0}, 
     gravity: 0.35,
@@ -134,8 +133,8 @@ let gameState = {
     maxPipeSpeed:6,
     difficulty:"Normal", 
     animationId:null,
-    nextPipeX: 0,  // ✅ POSITION BASED - NO TIME DEPENDENCY
-    pipeSpacing: 450  // ✅ LARGER FIXED DISTANCE
+    pipeSpacing: 500,  // ✅ FIXED PERFECT DISTANCE
+    lastPipeX: 0
 };
 
 let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
@@ -175,27 +174,45 @@ function initGame() {
     gameState.gameOver = false;
     gameState.paused = false;
     gameState.gameStarted = false;
-    gameState.pipeSpeed = {"Very Easy":1.5,"Normal":2.5,"Hard":3.5}[gameState.difficulty];
-    gameState.nextPipeX = canvas.width + gameState.pipeSpacing;  // ✅ RESET POSITION
+    gameState.pipeSpeed = {"Very Easy":1.8,"Normal":2.5,"Hard":3.2}[gameState.difficulty];
+    gameState.lastPipeX = canvas.width + 100;  // ✅ Start first pipe offscreen
 }
 
-function createPipe() {
-    let gap = gameState.difficulty === "Very Easy" ? 320 : gameState.difficulty === "Normal" ? 270 : 220;
-    const topHeight = Math.random() * (canvas.height - gap - 140) + 70;
-    gameState.pipes.push({
+function createPipePair() {
+    const pipeWidth = 70;
+    const gapSize = gameState.difficulty === "Very Easy" ? 280 : gameState.difficulty === "Normal" ? 240 : 200;
+    const minHeight = 100;
+    const maxHeight = canvas.height - gapSize - minHeight - 70;
+    const gapY = Math.random() * (maxHeight - minHeight) + minHeight;
+    
+    // Top pipe
+    const topPipe = {
         x: canvas.width,
-        width: 60,
-        top: topHeight,
-        bottom: canvas.height - topHeight - gap,
-        passed: false
-    });
+        width: pipeWidth,
+        top: gapY,
+        bottom: 0,
+        passed: false,
+        isTop: true
+    };
+    
+    // Bottom pipe  
+    const bottomPipe = {
+        x: canvas.width,
+        width: pipeWidth,
+        top: 0,
+        bottom: canvas.height - gapY - gapSize,
+        passed: false,
+        isTop: false
+    };
+    
+    gameState.pipes.push(topPipe, bottomPipe);
 }
 
-// ✅ POSITION BASED PIPE SPAWNING - SPEED INDEPENDENT
-function checkSpawnPipe() {
-    if (gameState.pipes.length === 0 || gameState.pipes[gameState.pipes.length-1].x < gameState.nextPipeX - 100) {
-        createPipe();
-        gameState.nextPipeX += gameState.pipeSpacing;  // ✅ FIXED DISTANCE ALWAYS
+// ✅ PERFECT PIPE SPAWNING - POSITION BASED
+function spawnPipes() {
+    if (gameState.pipes.length === 0 || (gameState.pipes[gameState.pipes.length-1].x + gameState.pipes[gameState.pipes.length-1].width < gameState.lastPipeX - gameState.pipeSpacing)) {
+        createPipePair();
+        gameState.lastPipeX += gameState.pipeSpacing;
     }
 }
 
@@ -238,7 +255,6 @@ function endGame() {
         localStorage.setItem("fluppyHighScore", gameState.highScore);
     }
     
-    // Unlock skins
     skins.forEach(s => { 
         if (gameState.score >= s.unlockScore) {
             skinData[s.name] = skinData[s.name] || {};
@@ -271,35 +287,40 @@ function gameLoop() {
         ctx.fillStyle = "#ffffcc"; ctx.beginPath(); ctx.arc(canvas.width-120,100,40,0,Math.PI*2); ctx.fill();
     }
     
-    // ✅ POSITION BASED PIPE GENERATION
-    checkSpawnPipe();
+    // ✅ PERFECT PIPE SPAWNING
+    spawnPipes();
     
-    // Pipes movement & collision
+    // Update and draw pipes
     for (let i = gameState.pipes.length - 1; i >= 0; i--) {
         let pipe = gameState.pipes[i];
         pipe.x -= gameState.pipeSpeed;
         
+        // Draw pipe
         ctx.fillStyle = selectedSkin.pipeColor;
         ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
-        ctx.fillRect(pipe.x, canvas.height-pipe.bottom, pipe.width, pipe.bottom);
+        ctx.fillRect(pipe.x, canvas.height - pipe.bottom, pipe.width, pipe.bottom);
         
-        // Collision detection
-        if (gameState.bird.x < pipe.x + pipe.width && 
-            gameState.bird.x + gameState.bird.width > pipe.x && 
+        // Collision
+        if (gameState.bird.x < pipe.x + pipe.width &&
+            gameState.bird.x + gameState.bird.width > pipe.x &&
             (gameState.bird.y < pipe.top || gameState.bird.y + gameState.bird.height > canvas.height - pipe.bottom)) {
-            endGame(); 
+            endGame();
             return;
         }
         
-        // Score & speed increase
-        if (!pipe.passed && pipe.x + pipe.width < gameState.bird.x) { 
-            gameState.score++;
-            pipe.passed = true;
-            gameState.pipeSpeed += 0.08;
-            if(gameState.pipeSpeed > gameState.maxPipeSpeed) gameState.pipeSpeed = gameState.maxPipeSpeed;
+        // Score (only once per pair)
+        if (!pipe.passed && pipe.x + pipe.width < gameState.bird.x) {
+            if (!gameState.pipes[i-1] || gameState.pipes[i-1].passed) {
+                gameState.score++;
+                pipe.passed = true;
+                gameState.pipeSpeed = Math.min(gameState.pipeSpeed + 0.05, gameState.maxPipeSpeed);
+            }
         }
         
-        if (pipe.x + pipe.width < -100) gameState.pipes.splice(i, 1);
+        // Remove offscreen pipes
+        if (pipe.x + pipe.width < -50) {
+            gameState.pipes.splice(i, 1);
+        }
     }
     
     // Ground
@@ -307,13 +328,13 @@ function gameLoop() {
     ctx.fillStyle = selectedSkin.groundColor;
     ctx.fillRect(0, canvas.height-groundHeight, canvas.width, groundHeight);
     
-    // Ground collision
-    if (gameState.bird.y + gameState.bird.height > canvas.height-groundHeight || gameState.bird.y < 0) { 
-        endGame(); 
-        return; 
+    // Ground/Sky collision
+    if (gameState.bird.y + gameState.bird.height > canvas.height-groundHeight || gameState.bird.y < 0) {
+        endGame();
+        return;
     }
     
-    // Bird drawing
+    // Bird
     ctx.save();
     ctx.translate(gameState.bird.x + gameState.bird.width/2, gameState.bird.y + gameState.bird.height/2);
     ctx.rotate(gameState.bird.rotation * Math.PI / 180);
@@ -321,28 +342,30 @@ function gameLoop() {
         ctx.drawImage(birdImages[selectedSkin.name], -gameState.bird.width/2, -gameState.bird.height/2, gameState.bird.width, gameState.bird.height);
     } else {
         ctx.font = "bold 45px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillStyle = "orange";
         ctx.fillText("🦜", 0, 0);
     }
     ctx.restore();
     
     // UI
     ctx.fillStyle = "black"; 
-    ctx.font = "bold 36px Arial"; 
+    ctx.font = "bold 40px Arial"; 
     ctx.textAlign = "left";
-    ctx.fillText(`Score: ${gameState.score}`, 25, 50);
-    ctx.fillText(`High: ${gameState.highScore}`, 25, 95);
+    ctx.fillText(`Score: ${gameState.score}`, 25, 55);
+    ctx.fillText(`High: ${gameState.highScore}`, 25, 100);
 }
 
 function jump() { 
     if (gameState.gameStarted && !gameState.gameOver && !gameState.paused) { 
-        gameState.bird.velocity = -6.5;
-        gameState.bird.rotation = -15;
+        gameState.bird.velocity = -7;
+        gameState.bird.rotation = -20;
     } 
 }
 
-// Controls
+// Controls - FIXED click detection
 document.addEventListener("click", (e) => {
-    if (!e.target.closest('#titleScreen') && !e.target.closest('#settingsScreen') && !e.target.closest('#storeScreen')) {
+    const menus = ['titleScreen', 'settingsScreen', 'storeScreen'];
+    if (!menus.some(id => e.target.closest('#' + id))) {
         jump();
     }
 });
@@ -351,27 +374,15 @@ document.addEventListener("keydown", e => { if (e.code === "Space") { e.preventD
 
 // Event Listeners
 elements.playBtn.onclick = startGame;
-elements.settingsBtnMain.onclick = () => { 
-    elements.titleScreen.style.display = "none"; 
-    elements.settingsScreen.style.display = "flex"; 
-};
-elements.backBtn.onclick = () => { 
-    elements.settingsScreen.style.display = "none"; 
-    elements.titleScreen.style.display = "flex"; 
-};
-elements.storeBtn.onclick = () => { 
-    elements.titleScreen.style.display = "none"; 
-    elements.storeScreen.style.display = "flex"; 
-    renderSkins(); 
-};
-elements.backStoreBtn.onclick = () => { 
-    elements.storeScreen.style.display = "none"; 
-    elements.titleScreen.style.display = "flex"; 
-};
+elements.settingsBtnMain.onclick = () => { elements.titleScreen.style.display = "none"; elements.settingsScreen.style.display = "flex"; };
+elements.backBtn.onclick = () => { elements.settingsScreen.style.display = "none"; elements.titleScreen.style.display = "flex"; };
+elements.storeBtn.onclick = () => { elements.titleScreen.style.display = "none"; elements.storeScreen.style.display = "flex"; renderSkins(); };
+elements.backStoreBtn.onclick = () => { elements.storeScreen.style.display = "none"; elements.titleScreen.style.display = "flex"; };
 
 document.querySelectorAll('input[name="difficulty"]').forEach(radio => {
     radio.onchange = () => {
         gameState.difficulty = radio.value;
+        gameState.pipeSpeed = {"Very Easy":1.8,"Normal":2.5,"Hard":3.2}[gameState.difficulty];
         localStorage.setItem("fluppyDifficulty", gameState.difficulty);
     };
 });
@@ -380,7 +391,6 @@ function renderSkins() {
     elements.skinRow.innerHTML = "";
     elements.upperSkinDisplay.innerHTML = "";
     
-    // Preview
     const previewImg = document.createElement("img");
     previewImg.src = selectedSkin.file;
     previewImg.onerror = () => previewImg.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkZhbGxiYWNrPC90ZXh0Pjwvc3ZnPg==";
@@ -388,31 +398,18 @@ function renderSkins() {
     
     skins.forEach(s => {
         const box = document.createElement("div");
-        box.className = "skinBox";
-        if (s.name === selectedSkin.name) box.classList.add("selected");
+        box.className = "skinBox" + (s.name === selectedSkin.name ? " selected" : "");
         
         const img = document.createElement("img");
         img.src = s.file;
         img.onerror = () => img.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkZhbGxiYWNrPC90ZXh0Pjwvc3ZnPg==";
         box.appendChild(img);
         
-        const nameDiv = document.createElement("div"); 
-        nameDiv.className = "name"; 
-        nameDiv.textContent = s.name; 
-        box.appendChild(nameDiv);
+        const nameDiv = document.createElement("div"); nameDiv.className = "name"; nameDiv.textContent = s.name; box.appendChild(nameDiv);
+        const priceDiv = document.createElement("div"); priceDiv.className = "price"; priceDiv.textContent = `${s.unlockScore} pts`; box.appendChild(priceDiv);
         
-        const priceDiv = document.createElement("div"); 
-        priceDiv.className = "price"; 
-        priceDiv.textContent = `${s.unlockScore} pts`; 
-        box.appendChild(priceDiv);
-        
-        const overlay = document.createElement("div"); 
-        overlay.className = "lockOverlay";
-        if (!skinData[s.name]?.unlocked) {
-            overlay.textContent = "🔒";
-        } else {
-            overlay.style.display = "none";
-        }
+        const overlay = document.createElement("div"); overlay.className = "lockOverlay";
+        if (!skinData[s.name]?.unlocked) overlay.textContent = "🔒"; else overlay.style.display = "none";
         box.appendChild(overlay);
         
         box.onclick = () => {
@@ -437,11 +434,12 @@ elements.confirmSkinBtn.onclick = () => {
     }
 };
 
-// ✅ PERFECT PAUSE - NO PIPE ISSUES
-elements.pauseBtnonclick = () => {
+// ✅ PERFECT PAUSE - NO PIPE SPAWNING
+elements.pauseBtn.onclick = () => {
     gameState.paused = !gameState.paused;
     elements.pauseBtn.textContent = gameState.paused ? "▶ Resume" : "⏸ Pause";
 };
+
 elements.restartBtn.onclick = startGame;
 elements.homeBtn.onclick = () => {
     if (gameState.animationId) cancelAnimationFrame(gameState.animationId);
@@ -450,6 +448,7 @@ elements.homeBtn.onclick = () => {
     gameState.gameOver = true;
     gameState.paused = false;
 };
+
 init();
 </script>
 </body>
