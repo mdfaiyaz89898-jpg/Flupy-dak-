@@ -6,6 +6,20 @@
 <style>
 body{ margin:0; overflow:hidden; font-family:Arial; background:skyblue;}
 canvas{ display:block; }
+#splashScreen{ 
+    position:absolute; width:100%; height:100%; top:0; left:0; 
+    display:flex; flex-direction:column; align-items:center; justify-content:center; 
+    z-index:1000; background:#000; transition: opacity 0.5s; 
+}
+#splashScreen img{ max-width:300px; max-height:300px; border-radius:20px; box-shadow:0 10px 40px rgba(255,255,0,0.5); }
+#okBtn{ 
+    position:absolute; bottom:80px; padding:20px 50px; font-size:28px; 
+    background:linear-gradient(45deg, #4CAF50, #45a049); color:white; 
+    border:none; border-radius:25px; cursor:pointer; font-weight:bold; 
+    box-shadow:0 8px 25px rgba(0,0,0,0.4); transition:0.3s;
+}
+#okBtn:hover{ transform:scale(1.1); box-shadow:0 12px 35px rgba(0,0,0,0.5); }
+
 #titleScreen, #settingsScreen, #storeScreen{ 
     position:absolute; width:100%; height:100%; top:0; left:0; 
     display:flex; flex-direction:column; align-items:center; justify-content:center; 
@@ -68,7 +82,12 @@ canvas{ display:block; }
 </head>
 <body>
 
-<div id="titleScreen">
+<div id="splashScreen">
+    <img src="Picsart_26-03-19_22-39-08-547.jpg" alt="Splash Image" onerror="this.style.display='none';">
+    <button id="okBtn">OK</button>
+</div>
+
+<div id="titleScreen" style="display:none;">
     <h1>🕹️ Fluppy Bird</h1>
     <button id="playBtn">Play Game</button>
     <button id="settingsBtnMain">Settings</button>
@@ -139,7 +158,7 @@ let gameState = {
     gravity: 0.4,
     pipes:[],
     score:0, 
-    highScore:parseInt(localStorage.getItem("fluppyHighScore"))||0, 
+    highScore:parseInt(localStorage.getItem("fluppyHighScore"))||0,
     gameOver:false, 
     gameStarted:false, 
     paused:false, 
@@ -159,6 +178,8 @@ let selectedSkinName = localStorage.getItem("selectedSkin") || "Bird";
 let selectedSkin = skins.find(s => s.name === selectedSkinName);
 
 const elements = {
+    splashScreen: document.getElementById("splashScreen"),
+    okBtn: document.getElementById("okBtn"),
     playBtn: document.getElementById("playBtn"),
     settingsBtnMain: document.getElementById("settingsBtnMain"),
     storeBtn: document.getElementById("storeBtn"),
@@ -189,6 +210,14 @@ async function init() {
     gameState.difficulty = savedDifficulty;
     document.querySelector(`input[name="difficulty"][value="${savedDifficulty}"]`).checked = true;
 }
+
+elements.okBtn.onclick = () => {
+    elements.splashScreen.style.opacity = "0";
+    setTimeout(() => {
+        elements.splashScreen.style.display = "none";
+        elements.titleScreen.style.display = "flex";
+    }, 500);
+};
 
 function initGame() {
     gameState.bird = {x:100,y:200,width:60,height:60,velocity:0,rotation:0};
@@ -358,7 +387,6 @@ function gameLoop() {
     }
     ctx.restore();
     
-    // ✅ SMALLER FONT SIZE FOR SCORE DISPLAY
     ctx.fillStyle = "black"; 
     ctx.font = "bold 32px Arial"; 
     ctx.textAlign = "left";
@@ -404,7 +432,7 @@ function renderSkins() {
     previewImg.src = selectedSkin.file;
     previewImg.onerror = () => previewImg.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkZhbGxiYWNrPC90ZXh0Pjwvc3ZnPg==";
     elements.upperSkinDisplay.appendChild(previewImg);
-    
+
     skins.forEach(s => {
         const box = document.createElement("div");
         box.className = "skinBox" + (s.name === selectedSkin.name ? " selected" : "");
