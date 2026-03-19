@@ -47,19 +47,22 @@ canvas{ display:block; }
 .confirmBtn.unlocked{ background: linear-gradient(45deg, #4CAF50, #45a049); color: white; }
 .backStoreBtn{ position: absolute; top:15px; left:15px; font-size:32px; background:transparent; color:orange; border:none; cursor:pointer; }
 
-#pauseBtn, #restartBtn, #homeBtn, #pauseResumeBtn, #pauseHomeBtn{ 
+#pauseBtn{ 
+    position:absolute; right:15px; top:15px; display:none; background:#ff9800; color:white; padding:12px 20px; min-width:80px; 
     border:none; border-radius:12px; font-size:18px; cursor:pointer; font-weight:bold; 
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
-#pauseBtn{ position:absolute; right:15px; top:15px; display:none; background:#ff9800; color:white; padding:12px 20px; min-width:80px; }
-#pauseResumeBtn, #pauseHomeBtn{ 
+
+#pauseResumeBtn, #pauseHomeBtn, #restartBtn, #homeBtn{ 
     position:absolute; left:50%; transform:translateX(-50%); display:none; 
-    background:linear-gradient(45deg,#ff9800,#f57c00); color:white; padding:20px 40px; font-size:24px;
+    border:none; border-radius:12px; font-size:24px; cursor:pointer; font-weight:bold; 
+    padding:20px 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
-#pauseResumeBtn{ top:45%; }
-#pauseHomeBtn{ top:60%; }
-#restartBtn{ display:none; top:45%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(45deg,#ff5722,#e64a19); color:white; padding:20px 40px; font-size:24px;}
-#homeBtn{ display:none; top:55%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(45deg,#03a9f4,#0288d1); color:white; padding:20px 40px; font-size:24px;}
+#pauseResumeBtn{ top:40%; background:linear-gradient(45deg,#ff9800,#f57c00); color:white; }
+#pauseHomeBtn{ top:55%; background:linear-gradient(45deg,#03a9f4,#0288d1); color:white; }
+#restartBtn{ top:40%; background:linear-gradient(45deg,#ff5722,#e64a19); color:white; }
+#homeBtn{ top:55%; background:linear-gradient(45deg,#03a9f4,#0288d1); color:white; }
+
 #madeBy{ position:absolute; bottom:15px; left:15px; font-size:14px; z-index:200; color:rgba(0,0,0,0.7); }
 </style>
 </head>
@@ -146,7 +149,8 @@ let gameState = {
     difficulty:"Normal", 
     animationId:null,
     pipeSpacing: 420,
-    nextPipeDistance: 420
+    nextPipeDistance: 420,
+    speedProgress: 0  // ✅ New variable for smooth speed counter
 };
 
 let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
@@ -197,6 +201,7 @@ function initGame() {
     gameState.currentPipeSpeed = {"Very Easy":2.0,"Normal":2.5,"Hard":3.0}[gameState.difficulty];
     gameState.basePipeSpeed = gameState.currentPipeSpeed;
     gameState.nextPipeDistance = gameState.pipeSpacing;
+    gameState.speedProgress = 0;  // ✅ Reset speed progress
 }
 
 function createPerfectPipe() {
@@ -281,6 +286,13 @@ function gameLoop() {
     
     if (!gameState.gameStarted || gameState.gameOver || gameState.paused) return;
     
+    // ✅ Smooth speed counter logic (100 per score point)
+    gameState.speedProgress += gameState.currentPipeSpeed * 2;
+    if (gameState.speedProgress >= 100) {
+        gameState.speedProgress -= 100;
+    }
+    const displaySpeed = Math.floor(gameState.score * 100 + gameState.speedProgress);
+    
     gameState.bird.velocity += gameState.gravity;
     gameState.bird.y += gameState.bird.velocity;
     gameState.bird.rotation = Math.min(gameState.bird.velocity * 3, 25);
@@ -347,13 +359,13 @@ function gameLoop() {
     }
     ctx.restore();
     
-    // ✅ SPEED DISPLAY (score × 100)
+    // ✅ FIXED SPEED DISPLAY (smooth counter 100 per score)
     ctx.fillStyle = "black"; 
     ctx.font = "bold 42px Arial"; 
     ctx.textAlign = "left";
     ctx.fillText(`Score: ${gameState.score}`, 25, 60);
     ctx.fillText(`High: ${gameState.highScore}`, 25, 110);
-    ctx.fillText(`Speed: ${gameState.score * 100}`, 25, 160);
+    ctx.fillText(`Speed: ${displaySpeed}`, 25, 160);
 }
 
 function jump() { 
@@ -432,7 +444,7 @@ elements.confirmSkinBtn.onclick = () => {
     }
 };
 
-// ✅ PERFECT PAUSE BUTTON CENTER MEIN
+// ✅ FIXED PAUSE BUTTONS - Perfect center positioning
 elements.pauseBtn.onclick = () => {
     gameState.paused = !gameState.paused;
     if (gameState.paused) {
