@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Fluppy Bird - CHATGPT ORIGINAL TEXTURES</title>
+<title>Fluppy Bird - ALL BUGS FIXED 2026</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-/* Same CSS as before - no change */
 body{ margin:0; overflow:hidden; font-family:Arial; background:skyblue;}
 canvas{ display:block; }
 #titleScreen, #settingsScreen, #storeScreen{ 
@@ -48,7 +47,7 @@ canvas{ display:block; }
 .backStoreBtn{ position: absolute; top:15px; left:15px; font-size:32px; background:transparent; color:orange; border:none; cursor:pointer; }
 
 #pauseBtn, #restartBtn, #homeBtn{ position:absolute; padding:12px 20px; border:none; border-radius:12px; font-size:18px; cursor:pointer; font-weight:bold; z-index:200; box-shadow: 0 4px 15px rgba(0,0,0,0.3);}
-#pauseBtn{ right:15px; top:15px; display:none; background:#ff9800; color:white; }
+#pauseBtn{ right:15px; top:15px; display:none; background:#ff9800; color:white; min-width:80px; }
 #restartBtn{ display:none; top:45%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(45deg,#ff5722,#e64a19); color:white; padding:20px 40px; font-size:24px;}
 #homeBtn{ display:none; top:55%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(45deg,#03a9f4,#0288d1); color:white; padding:20px 40px; font-size:24px;}
 #madeBy{ position:absolute; bottom:15px; left:15px; font-size:14px; z-index:200; color:rgba(0,0,0,0.7); }
@@ -85,19 +84,11 @@ canvas{ display:block; }
 <button id="pauseBtn">⏸ Pause</button>
 <button id="restartBtn">🔄 Restart</button>
 <button id="homeBtn">🏠 Home</button>
-<div id="madeBy">ChatGPT Textures + Perplexity Fixes 🚀</div>
+<div id="madeBy">Perplexity AI - All Bugs Fixed 🚀</div>
 
 <script>
-// CHATGPT KE EXACT FILE NAMES
+// CHATGPT ORIGINAL TEXTURES
 const birdImages = {};
-const skinFiles = [
-    "Picsart_26-02-26_17-30-25-252.png",  // Bird
-    "Picsart_26-02-27_01-28-33-302.png",  // Mango Bird  
-    "Picsart_26-02-27_10-16-34-761.png",  // Happy Perrot
-    "Picsart_26-02-27_10-15-45-688.png",  // Angry Bird
-    "Picsart_26-02-27_20-37-59-368.png"   // Crow
-];
-
 const skins = [
     {name:"Bird", file:"Picsart_26-02-26_17-30-25-252.png", unlockScore:0, pipeColor:"#00c853", groundColor:"#8B4513"},
     {name:"Mango Bird", file:"Picsart_26-02-27_01-28-33-302.png", unlockScore:10, pipeColor:"#FFA500", groundColor:"#FFCC80"},
@@ -113,7 +104,6 @@ function preloadImages() {
             birdImages[skin.name] = new Image();
             birdImages[skin.name].onload = resolve;
             birdImages[skin.name].onerror = () => {
-                console.log(`Image not found: ${skin.file} - using fallback`);
                 birdImages[skin.name] = null;
                 resolve();
             };
@@ -128,8 +118,23 @@ function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = wind
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
-// Game state
-let gameState = { bird: {x:100,y:200,width:60,height:60,velocity:0,rotation:0}, gravity:0.4, pipes:[], score:0, highScore:parseInt(localStorage.getItem("fluppyHighScore"))||0, gameOver:false, gameStarted:false, paused:false, pipeSpeed:2, difficulty:localStorage.getItem("fluppyDifficulty")||"Normal", animationId:null, pipeInterval:null };
+// Game state - FIXED GRAVITY
+let gameState = { 
+    bird: {x:100,y:200,width:60,height:60,velocity:0,rotation:0}, 
+    gravity: 0.35,  // ✅ FIXED GRAVITY
+    pipes:[],
+    score:0, 
+    highScore:parseInt(localStorage.getItem("fluppyHighScore"))||0, 
+    gameOver:false, 
+    gameStarted:false, 
+    paused:false, 
+    pipeSpeed:2.5,  // Starting speed
+    maxPipeSpeed:6,
+    difficulty:"Normal", 
+    animationId:null, 
+    pipeInterval:null 
+};
+
 let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
 skins.forEach(s => { if (!skinData[s.name]) skinData[s.name] = {unlocked: s.unlockScore === 0}; });
 let selectedSkinName = localStorage.getItem("selectedSkin") || "Bird";
@@ -160,7 +165,7 @@ async function init() {
 
 function initGame() {
     gameState.bird = {x:100,y:200,width:60,height:60,velocity:0,rotation:0};
-    gameState.gravity = 0.4;
+    gameState.gravity = 0.35;  // ✅ ALWAYS RESET GRAVITY
     gameState.pipes = [];
     gameState.score = 0;
     gameState.gameOver = false;
@@ -170,8 +175,8 @@ function initGame() {
 }
 
 function createPipe() {
-    let gap = gameState.difficulty === "Very Easy" ? 280 : gameState.difficulty === "Normal" ? 220 : 160;
-    const topHeight = Math.random() * (canvas.height - gap - 100) + 50;
+    let gap = gameState.difficulty === "Very Easy" ? 300 : gameState.difficulty === "Normal" ? 250 : 200;  // ✅ LARGER GAPS
+    const topHeight = Math.random() * (canvas.height - gap - 120) + 60;
     gameState.pipes.push({x:canvas.width,width:60,top:topHeight,bottom:canvas.height-topHeight-gap,passed:false});
 }
 
@@ -179,12 +184,12 @@ function startGame() {
     if (gameState.pipeInterval) clearInterval(gameState.pipeInterval);
     if (gameState.animationId) cancelAnimationFrame(gameState.animationId);
     
-    elements.titleScreen.style.display = "none";
-    elements.settingsScreen.style.display = "none";
-    elements.storeScreen.style.display = "none";
-    elements.restartBtn.style.display = "none";
-    elements.homeBtn.style.display = "none";
-    elements.pauseBtn.style.display = "none";
+    Object.values(elements).forEach(el => {
+        if (el.style) {
+            if (['restartBtn','homeBtn','pauseBtn'].includes(el.id)) el.style.display = "none";
+            else if (['titleScreen','settingsScreen','storeScreen'].includes(el.id)) el.style.display = "none";
+        }
+    });
     
     initGame();
     
@@ -202,7 +207,7 @@ function startGame() {
             document.body.removeChild(overlay);
             elements.pauseBtn.style.display = "block";
             gameState.gameStarted = true;
-            gameState.pipeInterval = setInterval(createPipe, 2200);
+            gameState.pipeInterval = setInterval(createPipe, 3000);  // ✅ LARGER PIPE DISTANCE
             gameLoop();
         }
     }, 700);
@@ -229,13 +234,14 @@ function gameLoop() {
     gameState.animationId = requestAnimationFrame(gameLoop);
     if (!gameState.gameStarted || gameState.gameOver || gameState.paused) return;
     
+    // Bird physics - FIXED TILT & JUMP
     gameState.bird.velocity += gameState.gravity;
     gameState.bird.y += gameState.bird.velocity;
-    gameState.bird.rotation = Math.min(gameState.bird.velocity * 4, 30);
+    gameState.bird.rotation = Math.min(gameState.bird.velocity * 2.5, 20);  // ✅ LESS TILT
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Background (same as before)
+    // Background
     if (Math.floor(gameState.score / 5) % 2 === 0) {
         ctx.fillStyle = "skyblue"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#FFD700"; ctx.beginPath(); ctx.arc(canvas.width-120,100,45,0,Math.PI*2); ctx.fill();
@@ -246,7 +252,7 @@ function gameLoop() {
         ctx.fillStyle = "#ffffcc"; ctx.beginPath(); ctx.arc(canvas.width-120,100,40,0,Math.PI*2); ctx.fill();
     }
     
-    // Pipes
+    // Pipes - SPEED INCREASE EVERY POINT ✅
     for (let i = gameState.pipes.length - 1; i >= 0; i--) {
         let pipe = gameState.pipes[i];
         pipe.x -= gameState.pipeSpeed;
@@ -255,12 +261,21 @@ function gameLoop() {
         ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
         ctx.fillRect(pipe.x, canvas.height-pipe.bottom, pipe.width, pipe.bottom);
         
-        if (gameState.bird.x < pipe.x + pipe.width && gameState.bird.x + gameState.bird.width > pipe.x && 
+        // Collision
+        if (gameState.bird.x < pipe.x + pipe.width && 
+            gameState.bird.x + gameState.bird.width > pipe.x && 
             (gameState.bird.y < pipe.top || gameState.bird.y + gameState.bird.height > canvas.height - pipe.bottom)) {
             endGame(); return;
         }
         
-        if (!pipe.passed && pipe.x + pipe.width < gameState.bird.x) { gameState.score++; pipe.passed = true; }
+        // SPEED INCREASE + SCORE ✅
+        if (!pipe.passed && pipe.x + pipe.width < gameState.bird.x) { 
+            gameState.score++;
+            pipe.passed = true;
+            gameState.pipeSpeed += 0.1;  // ✅ SPEED +0.1 PER POINT
+            if(gameState.pipeSpeed > gameState.maxPipeSpeed) gameState.pipeSpeed = gameState.maxPipeSpeed;
+        }
+        
         if (pipe.x + pipe.width < 0) gameState.pipes.splice(i, 1);
     }
     
@@ -268,9 +283,11 @@ function gameLoop() {
     ctx.fillStyle = selectedSkin.groundColor;
     ctx.fillRect(0, canvas.height-groundHeight, canvas.width, groundHeight);
     
-    if (gameState.bird.y + gameState.bird.height > canvas.height-groundHeight || gameState.bird.y < 0) { endGame(); return; }
+    if (gameState.bird.y + gameState.bird.height > canvas.height-groundHeight || gameState.bird.y < 0) { 
+        endGame(); return; 
+    }
     
-    // BIRD WITH CHATGPT IMAGES - FIXED ROTATION
+    // Bird drawing - FIXED
     ctx.save();
     ctx.translate(gameState.bird.x + gameState.bird.width/2, gameState.bird.y + gameState.bird.height/2);
     ctx.rotate(gameState.bird.rotation * Math.PI / 180);
@@ -278,26 +295,33 @@ function gameLoop() {
     if (birdImages[selectedSkin.name]) {
         ctx.drawImage(birdImages[selectedSkin.name], -gameState.bird.width/2, -gameState.bird.height/2, gameState.bird.width, gameState.bird.height);
     } else {
-        // Fallback emoji
         ctx.font = "bold 45px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText("🦜", 0, 0);
     }
     ctx.restore();
     
-    // UI
-    ctx.fillStyle = "black"; ctx.font = "bold 32px Arial"; ctx.textAlign = "left";
+    // UI - NO BIRD NAME ✅
+    ctx.fillStyle = "black"; 
+    ctx.font = "bold 36px Arial"; 
+    ctx.textAlign = "left";
     ctx.fillText(`Score: ${gameState.score}`, 25, 50);
-    ctx.fillText(`High: ${gameState.highScore}`, 25, 90);
-    ctx.textAlign = "right";
-    ctx.fillText(`${selectedSkin.name}`, canvas.width-25, 50);
+    ctx.fillText(`High: ${gameState.highScore}`, 25, 95);
+    // ❌ Bird name REMOVED
 }
 
-function jump() { if (gameState.gameStarted && !gameState.gameOver && !gameState.paused) { gameState.bird.velocity = -8; gameState.bird.rotation = -20; } }
+function jump() { 
+    if (gameState.gameStarted && !gameState.gameOver && !gameState.paused) { 
+        gameState.bird.velocity = -6.5;  // ✅ LESS JUMP BOUNCE
+        gameState.bird.rotation = -15;   // ✅ LESS TILT
+    } 
+}
 
+// Controls
 document.addEventListener("click", jump);
 document.addEventListener("touchstart", e => { e.preventDefault(); jump(); });
 document.addEventListener("keydown", e => { if (e.code === "Space") { e.preventDefault(); jump(); } });
 
+// Event Listeners
 elements.playBtn.onclick = startGame;
 elements.settingsBtnMain.onclick = () => { elements.titleScreen.style.display = "none"; elements.settingsScreen.style.display = "flex"; };
 elements.backBtn.onclick = () => { elements.settingsScreen.style.display = "none"; elements.titleScreen.style.display = "flex"; };
@@ -359,10 +383,11 @@ elements.confirmSkinBtn.onclick = () => {
     }
 };
 
+// ✅ PERFECT PAUSE FIX
 elements.pauseBtn.onclick = () => {
     gameState.paused = !gameState.paused;
     elements.pauseBtn.textContent = gameState.paused ? "▶ Resume" : "⏸ Pause";
-    if (!gameState.paused) gameLoop();
+    // NO EXTRA gameLoop call - it continues naturally
 };
 
 elements.restartBtn.onclick = startGame;
@@ -372,6 +397,7 @@ elements.homeBtn.onclick = () => {
     elements.homeBtn.style.display = "none";
     elements.pauseBtn.style.display = "none";
     gameState.gameOver = true;
+    gameState.paused = false;
 };
 
 init();
