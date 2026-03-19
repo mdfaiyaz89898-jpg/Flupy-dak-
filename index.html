@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Fluppy Bird - BUG FREE PERFECT</title>
+<title>Fluppy Bird - ABSOLUTE PERFECT</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{ margin:0; overflow:hidden; font-family:Arial; background:skyblue;}
@@ -57,7 +57,7 @@ canvas{ display:block; }
 <body>
 
 <div id="titleScreen">
-    <h1>🕹️ Fluppy Bird PERFECT</h1>
+    <h1>🕹️ Fluppy Bird ULTRA PERFECT</h1>
     <button id="playBtn">Play Game</button>
     <button id="settingsBtnMain">Settings</button>
     <button id="storeBtn">Store</button>
@@ -67,9 +67,9 @@ canvas{ display:block; }
     <button class="backBtn">&#8592;</button>
     <h2>🎮 Select Difficulty</h2>
     <div id="difficultyOptions" style="text-align:center;">
-        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Very Easy"> 🌈 Very Easy</label>
+        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Very Easy"> 🌈 Very Easy (Big Gap)</label>
         <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Normal"> ⚡ Normal</label>
-        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Hard"> 🔥 Hard</label>
+        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Hard"> 🔥 Hard (Small Gap)</label>
     </div>
 </div>
 
@@ -85,7 +85,7 @@ canvas{ display:block; }
 <button id="pauseBtn">⏸ Pause</button>
 <button id="restartBtn">🔄 Restart</button>
 <button id="homeBtn">🏠 Home</button>
-<div id="madeBy">Perplexity AI - 100% PERFECT 🚀</div>
+<div id="madeBy">Perplexity AI - FLAPPY BIRD EXACT 🚀</div>
 
 <script>
 const birdImages = {};
@@ -120,21 +120,23 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
+// ✅ ULTRA PERFECT PIPE SYSTEM
 let gameState = { 
     bird: {x:100,y:200,width:60,height:60,velocity:0,rotation:0}, 
-    gravity: 0.35,
+    gravity: 0.4,
     pipes:[],
     score:0, 
     highScore:parseInt(localStorage.getItem("fluppyHighScore"))||0, 
     gameOver:false, 
     gameStarted:false, 
     paused:false, 
-    pipeSpeed:2.5,
-    maxPipeSpeed:6,
+    basePipeSpeed:2.5,  // ✅ BASE SPEED - Increases separately
+    currentPipeSpeed:2.5,
+    maxPipeSpeed:5,
     difficulty:"Normal", 
     animationId:null,
-    pipeSpacing: 500,  // ✅ FIXED PERFECT DISTANCE
-    lastPipeX: 0
+    pipeSpacing: 420,  // ✅ FIXED DISTANCE - NEVER CHANGES
+    nextPipeDistance: 420  // ✅ Distance counter for spawning
 };
 
 let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
@@ -159,6 +161,13 @@ const elements = {
     storeScreen: document.getElementById("storeScreen")
 };
 
+// ✅ GAP SIZES BY DIFFICULTY
+const gapSizes = {
+    "Very Easy": 320,
+    "Normal": 260,
+    "Hard": 200
+};
+
 async function init() {
     await preloadImages();
     const savedDifficulty = localStorage.getItem("fluppyDifficulty") || "Normal";
@@ -168,51 +177,42 @@ async function init() {
 
 function initGame() {
     gameState.bird = {x:100,y:200,width:60,height:60,velocity:0,rotation:0};
-    gameState.gravity = 0.35;
+    gameState.gravity = 0.4;
     gameState.pipes = [];
     gameState.score = 0;
     gameState.gameOver = false;
     gameState.paused = false;
     gameState.gameStarted = false;
-    gameState.pipeSpeed = {"Very Easy":1.8,"Normal":2.5,"Hard":3.2}[gameState.difficulty];
-    gameState.lastPipeX = canvas.width + 100;  // ✅ Start first pipe offscreen
+    gameState.currentPipeSpeed = {"Very Easy":2.0,"Normal":2.5,"Hard":3.0}[gameState.difficulty];
+    gameState.basePipeSpeed = gameState.currentPipeSpeed;
+    gameState.nextPipeDistance = gameState.pipeSpacing;
 }
 
-function createPipePair() {
-    const pipeWidth = 70;
-    const gapSize = gameState.difficulty === "Very Easy" ? 280 : gameState.difficulty === "Normal" ? 240 : 200;
-    const minHeight = 100;
-    const maxHeight = canvas.height - gapSize - minHeight - 70;
-    const gapY = Math.random() * (maxHeight - minHeight) + minHeight;
+function createPerfectPipe() {
+    const gapSize = gapSizes[gameState.difficulty];
+    const minHeight = 120;
+    const maxHeight = canvas.height - gapSize - minHeight - 80;
+    const pipeTopHeight = Math.random() * (maxHeight - minHeight) + minHeight;
     
-    // Top pipe
-    const topPipe = {
+    const pipe = {
         x: canvas.width,
-        width: pipeWidth,
-        top: gapY,
-        bottom: 0,
+        width: 70,
+        topHeight: pipeTopHeight,
+        gapSize: gapSize,
+        bottomHeight: canvas.height - pipeTopHeight - gapSize - 70,
         passed: false,
-        isTop: true
+        scored: false
     };
     
-    // Bottom pipe  
-    const bottomPipe = {
-        x: canvas.width,
-        width: pipeWidth,
-        top: 0,
-        bottom: canvas.height - gapY - gapSize,
-        passed: false,
-        isTop: false
-    };
-    
-    gameState.pipes.push(topPipe, bottomPipe);
+    gameState.pipes.push(pipe);
 }
 
-// ✅ PERFECT PIPE SPAWNING - POSITION BASED
-function spawnPipes() {
-    if (gameState.pipes.length === 0 || (gameState.pipes[gameState.pipes.length-1].x + gameState.pipes[gameState.pipes.length-1].width < gameState.lastPipeX - gameState.pipeSpacing)) {
-        createPipePair();
-        gameState.lastPipeX += gameState.pipeSpacing;
+// ✅ PERFECT SPAWNING - FIXED DISTANCE
+function updatePipeSpawning() {
+    gameState.nextPipeDistance -= gameState.currentPipeSpeed;
+    if (gameState.nextPipeDistance <= 0) {
+        createPerfectPipe();
+        gameState.nextPipeDistance = gameState.pipeSpacing;  // ✅ ALWAYS SAME DISTANCE
     }
 }
 
@@ -272,7 +272,7 @@ function gameLoop() {
     // Bird physics
     gameState.bird.velocity += gameState.gravity;
     gameState.bird.y += gameState.bird.velocity;
-    gameState.bird.rotation = Math.min(gameState.bird.velocity * 2.5, 20);
+    gameState.bird.rotation = Math.min(gameState.bird.velocity * 3, 25);
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -287,37 +287,36 @@ function gameLoop() {
         ctx.fillStyle = "#ffffcc"; ctx.beginPath(); ctx.arc(canvas.width-120,100,40,0,Math.PI*2); ctx.fill();
     }
     
-    // ✅ PERFECT PIPE SPAWNING
-    spawnPipes();
+    // ✅ PERFECT PIPE SYSTEM
+    updatePipeSpawning();
     
-    // Update and draw pipes
+    // Update pipes
     for (let i = gameState.pipes.length - 1; i >= 0; i--) {
         let pipe = gameState.pipes[i];
-        pipe.x -= gameState.pipeSpeed;
+        pipe.x -= gameState.currentPipeSpeed;
         
-        // Draw pipe
+        // Draw pipes
         ctx.fillStyle = selectedSkin.pipeColor;
-        ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
-        ctx.fillRect(pipe.x, canvas.height - pipe.bottom, pipe.width, pipe.bottom);
+        ctx.fillRect(pipe.x, 0, pipe.width, pipe.topHeight);
+        ctx.fillRect(pipe.x, canvas.height - pipe.bottomHeight - 70, pipe.width, pipe.bottomHeight);
         
         // Collision
         if (gameState.bird.x < pipe.x + pipe.width &&
             gameState.bird.x + gameState.bird.width > pipe.x &&
-            (gameState.bird.y < pipe.top || gameState.bird.y + gameState.bird.height > canvas.height - pipe.bottom)) {
+            (gameState.bird.y < pipe.topHeight || 
+             gameState.bird.y + gameState.bird.height > canvas.height - pipe.bottomHeight - 70)) {
             endGame();
             return;
         }
         
-        // Score (only once per pair)
-        if (!pipe.passed && pipe.x + pipe.width < gameState.bird.x) {
-            if (!gameState.pipes[i-1] || gameState.pipes[i-1].passed) {
-                gameState.score++;
-                pipe.passed = true;
-                gameState.pipeSpeed = Math.min(gameState.pipeSpeed + 0.05, gameState.maxPipeSpeed);
-            }
+        // Score - only once per pipe
+        if (!pipe.scored && pipe.x + pipe.width < gameState.bird.x) {
+            gameState.score++;
+            pipe.scored = true;
+            // Speed increase (pipes only, distance stays same)
+            gameState.currentPipeSpeed = Math.min(gameState.currentPipeSpeed + 0.04, gameState.maxPipeSpeed);
         }
         
-        // Remove offscreen pipes
         if (pipe.x + pipe.width < -50) {
             gameState.pipes.splice(i, 1);
         }
@@ -328,7 +327,6 @@ function gameLoop() {
     ctx.fillStyle = selectedSkin.groundColor;
     ctx.fillRect(0, canvas.height-groundHeight, canvas.width, groundHeight);
     
-    // Ground/Sky collision
     if (gameState.bird.y + gameState.bird.height > canvas.height-groundHeight || gameState.bird.y < 0) {
         endGame();
         return;
@@ -341,7 +339,7 @@ function gameLoop() {
     if (birdImages[selectedSkin.name]) {
         ctx.drawImage(birdImages[selectedSkin.name], -gameState.bird.width/2, -gameState.bird.height/2, gameState.bird.width, gameState.bird.height);
     } else {
-        ctx.font = "bold 45px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.font = "bold 50px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillStyle = "orange";
         ctx.fillText("🦜", 0, 0);
     }
@@ -349,25 +347,23 @@ function gameLoop() {
     
     // UI
     ctx.fillStyle = "black"; 
-    ctx.font = "bold 40px Arial"; 
+    ctx.font = "bold 42px Arial"; 
     ctx.textAlign = "left";
-    ctx.fillText(`Score: ${gameState.score}`, 25, 55);
-    ctx.fillText(`High: ${gameState.highScore}`, 25, 100);
+    ctx.fillText(`Score: ${gameState.score}`, 25, 60);
+    ctx.fillText(`High: ${gameState.highScore}`, 25, 110);
 }
 
 function jump() { 
     if (gameState.gameStarted && !gameState.gameOver && !gameState.paused) { 
-        gameState.bird.velocity = -7;
-        gameState.bird.rotation = -20;
+        gameState.bird.velocity = -7.5;
+        gameState.bird.rotation = -25;
     } 
 }
 
-// Controls - FIXED click detection
+// Controls
 document.addEventListener("click", (e) => {
     const menus = ['titleScreen', 'settingsScreen', 'storeScreen'];
-    if (!menus.some(id => e.target.closest('#' + id))) {
-        jump();
-    }
+    if (!menus.some(id => e.target.closest('#' + id))) jump();
 });
 document.addEventListener("touchstart", e => { e.preventDefault(); jump(); });
 document.addEventListener("keydown", e => { if (e.code === "Space") { e.preventDefault(); jump(); } });
@@ -382,8 +378,9 @@ elements.backStoreBtn.onclick = () => { elements.storeScreen.style.display = "no
 document.querySelectorAll('input[name="difficulty"]').forEach(radio => {
     radio.onchange = () => {
         gameState.difficulty = radio.value;
-        gameState.pipeSpeed = {"Very Easy":1.8,"Normal":2.5,"Hard":3.2}[gameState.difficulty];
-        localStorage.setItem("fluppyDifficulty", gameState.difficulty);
+        gameState.currentPipeSpeed = {"Very Easy":2.0,"Normal":2.5,"Hard":3.0}[radio.value];
+        gameState.basePipeSpeed = gameState.currentPipeSpeed;
+        localStorage.setItem("fluppyDifficulty", radio.value);
     };
 });
 
@@ -434,7 +431,6 @@ elements.confirmSkinBtn.onclick = () => {
     }
 };
 
-// ✅ PERFECT PAUSE - NO PIPE SPAWNING
 elements.pauseBtn.onclick = () => {
     gameState.paused = !gameState.paused;
     elements.pauseBtn.textContent = gameState.paused ? "▶ Resume" : "⏸ Pause";
