@@ -63,7 +63,7 @@ canvas{ display:block; }
 #restartBtn{ top:40%; background:linear-gradient(45deg,#ff5722,#e64a19); color:white; }
 #homeBtn{ top:55%; background:linear-gradient(45deg,#03a9f4,#0288d1); color:white; }
 
-#madeBy{ position:absolute; bottom:15px; left:15px; font-size:14px; z-index:200; color:rgba(0,0,0,0.7); }
+#madeBy{ position:absolute; bottom:15px; left:15px; font-size:12px; z-index:200; color:rgba(0,0,0,0.7); font-weight:bold; }
 </style>
 </head>
 <body>
@@ -79,9 +79,9 @@ canvas{ display:block; }
     <button class="backBtn">&#8592;</button>
     <h2>🎮 Select Difficulty</h2>
     <div id="difficultyOptions" style="text-align:center;">
-        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Very Easy"> 🌈 Very Easy</label>
-        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Normal"> ⚡ Normal</label>
-        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Hard"> 🔥 Hard</label>
+        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Very Easy">  Very Easy</label>
+        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Normal">  Normal</label>
+        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Hard">  Hard</label>
     </div>
 </div>
 
@@ -99,7 +99,7 @@ canvas{ display:block; }
 <button id="pauseHomeBtn">🏠 Home</button>
 <button id="restartBtn">🔄 Restart</button>
 <button id="homeBtn">🏠 Home</button>
-<div id="madeBy">Perplexity AI - Perfect 🚀</div>
+<div id="madeBy">Made by TROLLHUNTER 🚀</div>
 
 <script>
 const birdImages = {};
@@ -150,7 +150,7 @@ let gameState = {
     animationId:null,
     pipeSpacing: 420,
     nextPipeDistance: 420,
-    speedProgress: 0  // ✅ New variable for smooth speed counter
+    speedProgress: 0
 };
 
 let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
@@ -201,7 +201,7 @@ function initGame() {
     gameState.currentPipeSpeed = {"Very Easy":2.0,"Normal":2.5,"Hard":3.0}[gameState.difficulty];
     gameState.basePipeSpeed = gameState.currentPipeSpeed;
     gameState.nextPipeDistance = gameState.pipeSpacing;
-    gameState.speedProgress = 0;  // ✅ Reset speed progress
+    gameState.speedProgress = 0;
 }
 
 function createPerfectPipe() {
@@ -286,7 +286,6 @@ function gameLoop() {
     
     if (!gameState.gameStarted || gameState.gameOver || gameState.paused) return;
     
-    // ✅ Smooth speed counter logic (100 per score point)
     gameState.speedProgress += gameState.currentPipeSpeed * 2;
     if (gameState.speedProgress >= 100) {
         gameState.speedProgress -= 100;
@@ -359,13 +358,13 @@ function gameLoop() {
     }
     ctx.restore();
     
-    // ✅ FIXED SPEED DISPLAY (smooth counter 100 per score)
+    // ✅ SMALLER FONT SIZE FOR SCORE DISPLAY
     ctx.fillStyle = "black"; 
-    ctx.font = "bold 42px Arial"; 
+    ctx.font = "bold 32px Arial"; 
     ctx.textAlign = "left";
     ctx.fillText(`Score: ${gameState.score}`, 25, 60);
-    ctx.fillText(`High: ${gameState.highScore}`, 25, 110);
-    ctx.fillText(`Speed: ${displaySpeed}`, 25, 160);
+    ctx.fillText(`High: ${gameState.highScore}`, 25, 105);
+    ctx.fillText(`Speed: ${displaySpeed}`, 25, 145);
 }
 
 function jump() { 
@@ -444,7 +443,6 @@ elements.confirmSkinBtn.onclick = () => {
     }
 };
 
-// ✅ FIXED PAUSE BUTTONS - Perfect center positioning
 elements.pauseBtn.onclick = () => {
     gameState.paused = !gameState.paused;
     if (gameState.paused) {
