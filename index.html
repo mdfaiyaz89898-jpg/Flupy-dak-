@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Fluppy Bird - ABSOLUTE PERFECT</title>
+<title>Fluppy Bird - PERFECT</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{ margin:0; overflow:hidden; font-family:Arial; background:skyblue;}
@@ -47,8 +47,17 @@ canvas{ display:block; }
 .confirmBtn.unlocked{ background: linear-gradient(45deg, #4CAF50, #45a049); color: white; }
 .backStoreBtn{ position: absolute; top:15px; left:15px; font-size:32px; background:transparent; color:orange; border:none; cursor:pointer; }
 
-#pauseBtn, #restartBtn, #homeBtn{ position:absolute; padding:12px 20px; border:none; border-radius:12px; font-size:18px; cursor:pointer; font-weight:bold; z-index:200; box-shadow: 0 4px 15px rgba(0,0,0,0.3);}
-#pauseBtn{ right:15px; top:15px; display:none; background:#ff9800; color:white; min-width:80px; }
+#pauseBtn, #restartBtn, #homeBtn, #pauseResumeBtn, #pauseHomeBtn{ 
+    border:none; border-radius:12px; font-size:18px; cursor:pointer; font-weight:bold; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+#pauseBtn{ position:absolute; right:15px; top:15px; display:none; background:#ff9800; color:white; padding:12px 20px; min-width:80px; }
+#pauseResumeBtn, #pauseHomeBtn{ 
+    position:absolute; left:50%; transform:translateX(-50%); display:none; 
+    background:linear-gradient(45deg,#ff9800,#f57c00); color:white; padding:20px 40px; font-size:24px;
+}
+#pauseResumeBtn{ top:45%; }
+#pauseHomeBtn{ top:60%; }
 #restartBtn{ display:none; top:45%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(45deg,#ff5722,#e64a19); color:white; padding:20px 40px; font-size:24px;}
 #homeBtn{ display:none; top:55%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(45deg,#03a9f4,#0288d1); color:white; padding:20px 40px; font-size:24px;}
 #madeBy{ position:absolute; bottom:15px; left:15px; font-size:14px; z-index:200; color:rgba(0,0,0,0.7); }
@@ -57,7 +66,7 @@ canvas{ display:block; }
 <body>
 
 <div id="titleScreen">
-    <h1>🕹️ Fluppy Bird ULTRA PERFECT</h1>
+    <h1>🕹️ Fluppy Bird</h1>
     <button id="playBtn">Play Game</button>
     <button id="settingsBtnMain">Settings</button>
     <button id="storeBtn">Store</button>
@@ -67,9 +76,9 @@ canvas{ display:block; }
     <button class="backBtn">&#8592;</button>
     <h2>🎮 Select Difficulty</h2>
     <div id="difficultyOptions" style="text-align:center;">
-        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Very Easy"> 🌈 Very Easy (Big Gap)</label>
+        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Very Easy"> 🌈 Very Easy</label>
         <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Normal"> ⚡ Normal</label>
-        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Hard"> 🔥 Hard (Small Gap)</label>
+        <label style="display:block; margin:15px; font-size:20px;"><input type="radio" name="difficulty" value="Hard"> 🔥 Hard</label>
     </div>
 </div>
 
@@ -83,9 +92,11 @@ canvas{ display:block; }
 
 <canvas id="gameCanvas"></canvas>
 <button id="pauseBtn">⏸ Pause</button>
+<button id="pauseResumeBtn">▶ Resume</button>
+<button id="pauseHomeBtn">🏠 Home</button>
 <button id="restartBtn">🔄 Restart</button>
 <button id="homeBtn">🏠 Home</button>
-<div id="madeBy">Perplexity AI - FLAPPY BIRD EXACT 🚀</div>
+<div id="madeBy">Perplexity AI - Perfect 🚀</div>
 
 <script>
 const birdImages = {};
@@ -120,7 +131,6 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
-// ✅ ULTRA PERFECT PIPE SYSTEM
 let gameState = { 
     bird: {x:100,y:200,width:60,height:60,velocity:0,rotation:0}, 
     gravity: 0.4,
@@ -130,13 +140,13 @@ let gameState = {
     gameOver:false, 
     gameStarted:false, 
     paused:false, 
-    basePipeSpeed:2.5,  // ✅ BASE SPEED - Increases separately
+    basePipeSpeed:2.5,
     currentPipeSpeed:2.5,
     maxPipeSpeed:5,
     difficulty:"Normal", 
     animationId:null,
-    pipeSpacing: 420,  // ✅ FIXED DISTANCE - NEVER CHANGES
-    nextPipeDistance: 420  // ✅ Distance counter for spawning
+    pipeSpacing: 420,
+    nextPipeDistance: 420
 };
 
 let skinData = JSON.parse(localStorage.getItem("fluppySkins")) || {};
@@ -151,6 +161,8 @@ const elements = {
     backBtn: document.querySelector(".backBtn"),
     backStoreBtn: document.querySelector(".backStoreBtn"),
     pauseBtn: document.getElementById("pauseBtn"),
+    pauseResumeBtn: document.getElementById("pauseResumeBtn"),
+    pauseHomeBtn: document.getElementById("pauseHomeBtn"),
     restartBtn: document.getElementById("restartBtn"),
     homeBtn: document.getElementById("homeBtn"),
     confirmSkinBtn: document.getElementById("confirmSkinBtn"),
@@ -161,7 +173,6 @@ const elements = {
     storeScreen: document.getElementById("storeScreen")
 };
 
-// ✅ GAP SIZES BY DIFFICULTY
 const gapSizes = {
     "Very Easy": 320,
     "Normal": 260,
@@ -207,12 +218,11 @@ function createPerfectPipe() {
     gameState.pipes.push(pipe);
 }
 
-// ✅ PERFECT SPAWNING - FIXED DISTANCE
 function updatePipeSpawning() {
     gameState.nextPipeDistance -= gameState.currentPipeSpeed;
     if (gameState.nextPipeDistance <= 0) {
         createPerfectPipe();
-        gameState.nextPipeDistance = gameState.pipeSpacing;  // ✅ ALWAYS SAME DISTANCE
+        gameState.nextPipeDistance = gameState.pipeSpacing;
     }
 }
 
@@ -220,7 +230,7 @@ function startGame() {
     if (gameState.animationId) cancelAnimationFrame(gameState.animationId);
     
     [elements.titleScreen, elements.settingsScreen, elements.storeScreen].forEach(el => el.style.display = "none");
-    [elements.restartBtn, elements.homeBtn, elements.pauseBtn].forEach(el => el.style.display = "none");
+    [elements.restartBtn, elements.homeBtn, elements.pauseBtn, elements.pauseResumeBtn, elements.pauseHomeBtn].forEach(el => el.style.display = "none");
     
     initGame();
     
@@ -249,6 +259,8 @@ function endGame() {
     elements.restartBtn.style.display = "block";
     elements.homeBtn.style.display = "block";
     elements.pauseBtn.style.display = "none";
+    elements.pauseResumeBtn.style.display = "none";
+    elements.pauseHomeBtn.style.display = "none";
     
     if (gameState.score > gameState.highScore) {
         gameState.highScore = gameState.score;
@@ -269,14 +281,12 @@ function gameLoop() {
     
     if (!gameState.gameStarted || gameState.gameOver || gameState.paused) return;
     
-    // Bird physics
     gameState.bird.velocity += gameState.gravity;
     gameState.bird.y += gameState.bird.velocity;
     gameState.bird.rotation = Math.min(gameState.bird.velocity * 3, 25);
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Background
     if (Math.floor(gameState.score / 5) % 2 === 0) {
         ctx.fillStyle = "skyblue"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#FFD700"; ctx.beginPath(); ctx.arc(canvas.width-120,100,45,0,Math.PI*2); ctx.fill();
@@ -287,20 +297,16 @@ function gameLoop() {
         ctx.fillStyle = "#ffffcc"; ctx.beginPath(); ctx.arc(canvas.width-120,100,40,0,Math.PI*2); ctx.fill();
     }
     
-    // ✅ PERFECT PIPE SYSTEM
     updatePipeSpawning();
     
-    // Update pipes
     for (let i = gameState.pipes.length - 1; i >= 0; i--) {
         let pipe = gameState.pipes[i];
         pipe.x -= gameState.currentPipeSpeed;
         
-        // Draw pipes
         ctx.fillStyle = selectedSkin.pipeColor;
         ctx.fillRect(pipe.x, 0, pipe.width, pipe.topHeight);
         ctx.fillRect(pipe.x, canvas.height - pipe.bottomHeight - 70, pipe.width, pipe.bottomHeight);
         
-        // Collision
         if (gameState.bird.x < pipe.x + pipe.width &&
             gameState.bird.x + gameState.bird.width > pipe.x &&
             (gameState.bird.y < pipe.topHeight || 
@@ -309,11 +315,9 @@ function gameLoop() {
             return;
         }
         
-        // Score - only once per pipe
         if (!pipe.scored && pipe.x + pipe.width < gameState.bird.x) {
             gameState.score++;
             pipe.scored = true;
-            // Speed increase (pipes only, distance stays same)
             gameState.currentPipeSpeed = Math.min(gameState.currentPipeSpeed + 0.04, gameState.maxPipeSpeed);
         }
         
@@ -322,7 +326,6 @@ function gameLoop() {
         }
     }
     
-    // Ground
     const groundHeight = 70;
     ctx.fillStyle = selectedSkin.groundColor;
     ctx.fillRect(0, canvas.height-groundHeight, canvas.width, groundHeight);
@@ -332,7 +335,6 @@ function gameLoop() {
         return;
     }
     
-    // Bird
     ctx.save();
     ctx.translate(gameState.bird.x + gameState.bird.width/2, gameState.bird.y + gameState.bird.height/2);
     ctx.rotate(gameState.bird.rotation * Math.PI / 180);
@@ -345,12 +347,13 @@ function gameLoop() {
     }
     ctx.restore();
     
-    // UI
+    // ✅ SPEED DISPLAY (score × 100)
     ctx.fillStyle = "black"; 
     ctx.font = "bold 42px Arial"; 
     ctx.textAlign = "left";
     ctx.fillText(`Score: ${gameState.score}`, 25, 60);
     ctx.fillText(`High: ${gameState.highScore}`, 25, 110);
+    ctx.fillText(`Speed: ${gameState.score * 100}`, 25, 160);
 }
 
 function jump() { 
@@ -360,7 +363,6 @@ function jump() {
     } 
 }
 
-// Controls
 document.addEventListener("click", (e) => {
     const menus = ['titleScreen', 'settingsScreen', 'storeScreen'];
     if (!menus.some(id => e.target.closest('#' + id))) jump();
@@ -368,7 +370,6 @@ document.addEventListener("click", (e) => {
 document.addEventListener("touchstart", e => { e.preventDefault(); jump(); });
 document.addEventListener("keydown", e => { if (e.code === "Space") { e.preventDefault(); jump(); } });
 
-// Event Listeners
 elements.playBtn.onclick = startGame;
 elements.settingsBtnMain.onclick = () => { elements.titleScreen.style.display = "none"; elements.settingsScreen.style.display = "flex"; };
 elements.backBtn.onclick = () => { elements.settingsScreen.style.display = "none"; elements.titleScreen.style.display = "flex"; };
@@ -431,9 +432,33 @@ elements.confirmSkinBtn.onclick = () => {
     }
 };
 
+// ✅ PERFECT PAUSE BUTTON CENTER MEIN
 elements.pauseBtn.onclick = () => {
     gameState.paused = !gameState.paused;
-    elements.pauseBtn.textContent = gameState.paused ? "▶ Resume" : "⏸ Pause";
+    if (gameState.paused) {
+        elements.pauseBtn.style.display = "none";
+        elements.pauseResumeBtn.style.display = "block";
+        elements.pauseHomeBtn.style.display = "block";
+    } else {
+        elements.pauseResumeBtn.style.display = "none";
+        elements.pauseHomeBtn.style.display = "none";
+        elements.pauseBtn.style.display = "block";
+    }
+};
+
+elements.pauseResumeBtn.onclick = () => {
+    gameState.paused = false;
+    elements.pauseResumeBtn.style.display = "none";
+    elements.pauseHomeBtn.style.display = "none";
+    elements.pauseBtn.style.display = "block";
+};
+
+elements.pauseHomeBtn.onclick = () => {
+    if (gameState.animationId) cancelAnimationFrame(gameState.animationId);
+    elements.titleScreen.style.display = "flex";
+    [elements.pauseBtn, elements.pauseResumeBtn, elements.pauseHomeBtn, elements.restartBtn, elements.homeBtn].forEach(el => el.style.display = "none");
+    gameState.gameOver = true;
+    gameState.paused = false;
 };
 
 elements.restartBtn.onclick = startGame;
